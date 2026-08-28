@@ -600,28 +600,61 @@ function openZomatoSwiggyPaymentModal(orderId, payData, amount) {
                     </div>
                 </div>
 
-                <!-- Tab 2: Credit / Debit Card -->
+                <!-- Tab 2: Credit / Debit Card (21st.dev / Rahil1202 3D Card Style) -->
                 <div id="tabCard" class="zs-tab-content" style="display: none;">
+                    <!-- 3D Card Live Preview -->
+                    <div style="perspective: 1000px; margin-bottom: 1rem;">
+                        <div id="liveCard3D" style="width: 100%; height: 165px; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); border-radius: 16px; box-shadow: 0 15px 30px rgba(0,0,0,0.25); background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0284c7 100%); color: white; padding: 1.25rem; overflow: hidden;">
+                            <!-- Front Side -->
+                            <div id="cardFrontSide" style="position: absolute; inset: 0; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; backface-visibility: hidden; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0369a1 100%); border-radius: 16px; border: 1px solid rgba(255,255,255,0.15);">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <!-- EMV Chip -->
+                                    <div style="width: 38px; height: 28px; background: linear-gradient(135deg, #fef08a, #f59e0b); border-radius: 5px; border: 1px solid #b45309; box-shadow: inset 0 1px 2px rgba(255,255,255,0.5);"></div>
+                                    <div id="liveCardTypeLogo" style="font-size: 1.1rem; font-weight: 800; font-family: sans-serif;">💳 VISA</div>
+                                </div>
+                                <div id="liveCardNumber" style="font-family: monospace; font-size: 1.2rem; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.4); text-align: center; margin: 0.4rem 0;">4242 4242 4242 4242</div>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-end; font-family: monospace; font-size: 0.75rem; text-transform: uppercase;">
+                                    <div>
+                                        <div style="font-size: 0.58rem; opacity: 0.7;">CARD HOLDER</div>
+                                        <div id="liveCardHolder" style="font-weight: 700; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;">FRESH DAIRY CUSTOMER</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 0.58rem; opacity: 0.7;">EXPIRES</div>
+                                        <div id="liveCardExpiry" style="font-weight: 700; font-size: 0.8rem;">12/28</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Back Side (Flipped view for CVV) -->
+                            <div id="cardBackSide" style="position: absolute; inset: 0; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; backface-visibility: hidden; transform: rotateY(180deg); background: linear-gradient(135deg, #020617 0%, #0f172a 100%); border-radius: 16px; border: 1px solid rgba(255,255,255,0.15);">
+                                <div style="position: absolute; top: 18px; left: 0; width: 100%; height: 36px; background: #000;"></div>
+                                <div style="margin-top: 44px; background: white; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; font-family: monospace; font-weight: 700; color: #0f172a;">
+                                    <span style="font-size: 0.65rem; color: #64748b; margin-right: 8px;">CVV / CVC</span>
+                                    <span id="liveCardCvv">123</span>
+                                </div>
+                                <div style="font-size: 0.6rem; color: #94a3b8; text-align: center; font-family: monospace;">This card is authorized for 3D Secure online transactions.</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div style="margin-bottom: 0.75rem; position: relative;">
                         <label style="font-size: 0.8rem; font-weight: 700; color: #334155; display: block; margin-bottom: 0.3rem;">Card Number</label>
-                        <input type="text" id="cardNumberInput" class="form-input" placeholder="4242 •••• •••• 4242" value="4242 4242 4242 4242" maxlength="19" oninput="detectCardType(this)" style="font-size: 0.95rem; font-family: monospace; letter-spacing: 1px;">
-                        <span id="cardTypeBadge" style="position: absolute; right: 10px; top: 28px; font-size: 1.1rem;">💳</span>
+                        <input type="text" id="cardNumberInput" class="form-input" placeholder="4242 •••• •••• 4242" value="4242 4242 4242 4242" maxlength="19" oninput="updateLiveCardPreview(this)" style="font-size: 0.95rem; font-family: monospace; letter-spacing: 1px;">
                     </div>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
                         <div>
                             <label style="font-size: 0.8rem; font-weight: 700; color: #334155; display: block; margin-bottom: 0.3rem;">Expiry (MM/YY)</label>
-                            <input type="text" id="cardExpiryInput" class="form-input" placeholder="12/28" value="12/28" maxlength="5" style="font-size: 0.9rem;">
+                            <input type="text" id="cardExpiryInput" class="form-input" placeholder="12/28" value="12/28" maxlength="5" oninput="updateLiveCardExpiry(this)" style="font-size: 0.9rem;">
                         </div>
                         <div>
                             <label style="font-size: 0.8rem; font-weight: 700; color: #334155; display: block; margin-bottom: 0.3rem;">CVV / CVC</label>
-                            <input type="password" id="cardCvvInput" class="form-input" placeholder="•••" value="123" maxlength="4" style="font-size: 0.9rem; font-family: monospace;">
+                            <input type="password" id="cardCvvInput" class="form-input" placeholder="•••" value="123" maxlength="4" onfocus="flipCard3D(true)" onblur="flipCard3D(false)" oninput="updateLiveCardCvv(this)" style="font-size: 0.9rem; font-family: monospace;">
                         </div>
                     </div>
 
                     <div style="margin-bottom: 1rem;">
                         <label style="font-size: 0.8rem; font-weight: 700; color: #334155; display: block; margin-bottom: 0.3rem;">Name on Card</label>
-                        <input type="text" id="cardNameInput" class="form-input" placeholder="Cardholder Name" value="Fresh Dairy Customer" style="font-size: 0.88rem;">
+                        <input type="text" id="cardNameInput" class="form-input" placeholder="Cardholder Name" value="Fresh Dairy Customer" oninput="updateLiveCardHolder(this)" style="font-size: 0.88rem;">
                     </div>
 
                     <button type="button" onclick="triggerCard3DSecureModal('${orderId}', '${payData.order_id || ''}', '${amount}')" style="width: 100%; background: #0284c7; color: white; border: none; padding: 0.8rem; border-radius: 10px; font-size: 1rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
@@ -709,14 +742,48 @@ function switchZsTab(tabId) {
     }
 }
 
-function detectCardType(input) {
-    const val = input.value.replace(/\D/g, '');
-    const badge = document.getElementById('cardTypeBadge');
-    if (val.startsWith('4')) badge.textContent = '💳 Visa';
-    else if (val.startsWith('5')) badge.textContent = '🔴🟡 MasterCard';
-    else if (val.startsWith('6')) badge.textContent = '🇮🇳 RuPay';
-    else if (val.startsWith('3')) badge.textContent = '🌐 AMEX';
-    else badge.textContent = '💳 Card';
+function flipCard3D(isFlipped) {
+    const card = document.getElementById('liveCard3D');
+    if (card) {
+        card.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+    }
+}
+
+function updateLiveCardPreview(input) {
+    let value = input.value.replace(/\D/g, '');
+    let formatted = value.replace(/(.{4})/g, '$1 ').trim();
+    input.value = formatted.substring(0, 19);
+    
+    const numEl = document.getElementById('liveCardNumber');
+    if (numEl) numEl.innerText = formatted || '•••• •••• •••• ••••';
+    
+    const typeEl = document.getElementById('liveCardTypeLogo');
+    if (typeEl) {
+        if (/^4/.test(value)) typeEl.innerHTML = '💳 VISA';
+        else if (/^(5[1-5]|2[2-7])/.test(value)) typeEl.innerHTML = '🔴🟡 MasterCard';
+        else if (/^3[47]/.test(value)) typeEl.innerHTML = '🌐 AMEX';
+        else if (/^(60|65|81|82)/.test(value)) typeEl.innerHTML = '🇮🇳 RuPay';
+        else typeEl.innerHTML = '💳 CARD';
+    }
+}
+
+function updateLiveCardExpiry(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length >= 2) {
+        input.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+    }
+    const expiryEl = document.getElementById('liveCardExpiry');
+    if (expiryEl) expiryEl.innerText = input.value || 'MM/YY';
+}
+
+function updateLiveCardCvv(input) {
+    const cvvEl = document.getElementById('liveCardCvv');
+    if (cvvEl) cvvEl.innerText = input.value || '•••';
+}
+
+function updateLiveCardHolder(input) {
+    const holderEl = document.getElementById('liveCardHolder');
+    if (holderEl) holderEl.innerText = (input.value || 'CARD HOLDER').toUpperCase();
 }
 
 // --- Interactive UPI PIN Entry Screen ---
