@@ -133,4 +133,36 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.style.transform = 'translate(0px, 0px) scale(1)';
         });
     });
+
+    // Proximity Floating Dock Magnification Wave for Navbar Items
+    const navContainer = document.querySelector('.nav-container');
+    if (navContainer) {
+        const dockTargets = navContainer.querySelectorAll('.nav-link, .cart-btn-nav, .user-pill, .btn-outline, .btn-with-icon');
+        navContainer.addEventListener('mousemove', (e) => {
+            const mouseX = e.clientX;
+            dockTargets.forEach(el => {
+                const rect = el.getBoundingClientRect();
+                const center = rect.left + rect.width / 2;
+                const distance = Math.abs(mouseX - center);
+                const maxDistance = 140;
+                
+                if (distance < maxDistance) {
+                    const scale = 1 + (0.16 * (1 - distance / maxDistance));
+                    const translateY = -5 * (1 - distance / maxDistance);
+                    el.style.transform = `translateY(${translateY}px) scale(${scale})`;
+                    el.style.zIndex = '10';
+                } else {
+                    el.style.transform = '';
+                    el.style.zIndex = '1';
+                }
+            });
+        });
+
+        navContainer.addEventListener('mouseleave', () => {
+            dockTargets.forEach(el => {
+                el.style.transform = '';
+                el.style.zIndex = '1';
+            });
+        });
+    }
 });

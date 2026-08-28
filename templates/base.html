@@ -169,40 +169,6 @@
     </footer>
     {% endif %}
 
-    <!-- Floating Navigation Dock (macOS / Aceternity Style) -->
-    {% if request.endpoint not in ['login_page', 'owner_login_page'] %}
-    <div class="floating-dock-wrapper" id="floatingDock">
-        <div class="floating-dock-container">
-            <a href="{{ url_for('home') }}" class="dock-item {% if request.endpoint == 'home' %}active-dock{% endif %}" data-tooltip="Home">
-                <span class="dock-icon">🏠</span>
-            </a>
-            <a href="{{ url_for('products_page') }}" class="dock-item {% if request.endpoint == 'products_page' %}active-dock{% endif %}" data-tooltip="Products">
-                <span class="dock-icon">🥛</span>
-            </a>
-            {% if session.get('user_id') %}
-            <a href="{{ url_for('wishlist_page') }}" class="dock-item {% if request.endpoint == 'wishlist_page' %}active-dock{% endif %}" data-tooltip="Wishlist">
-                <span class="dock-icon">❤️</span>
-            </a>
-            <a href="{{ url_for('orders_page') }}" class="dock-item {% if request.endpoint == 'orders_page' %}active-dock{% endif %}" data-tooltip="My Orders">
-                <span class="dock-icon">📦</span>
-            </a>
-            {% if session.get('role') == 'admin' %}
-            <a href="{{ url_for('admin_page') }}" class="dock-item {% if request.endpoint == 'admin_page' %}active-dock{% endif %}" data-tooltip="Admin Portal">
-                <span class="dock-icon">🔑</span>
-            </a>
-            {% endif %}
-            {% endif %}
-            <a href="{{ url_for('cart_page') }}" class="dock-item {% if request.endpoint == 'cart_page' %}active-dock{% endif %}" data-tooltip="Shopping Cart">
-                <span class="dock-icon">🛒</span>
-                <span class="cart-count dock-badge">0</span>
-            </a>
-            <button type="button" class="dock-item" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" data-tooltip="Top">
-                <span class="dock-icon">🔝</span>
-            </button>
-        </div>
-    </div>
-    {% endif %}
-
     <script src="{{ url_for('static', filename='js/app.js') }}?v=3.0"></script>
     {% block scripts %}{% endblock %}
 </body>
