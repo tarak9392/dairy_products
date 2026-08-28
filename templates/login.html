@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Login & Register - Dairy Products Ordering System{% endblock %}
+
+{% block content %}
+<!-- Full-Screen Video Background -->
+<div class="video-bg-container">
+    <video autoplay loop muted playsinline class="video-bg-media">
+        <source src="{{ url_for('static', filename='videos/login_bg.mp4') }}" type="video/mp4">
+    </video>
+    <div class="video-bg-overlay"></div>
+</div>
+
+<div class="auth-page-wrapper" style="max-width: 900px; margin: 0 auto; padding: 1rem; position: relative; z-index: 10;">
+    
+    <!-- Welcome Header -->
+    <div style="text-align: center; margin-bottom: 1rem;">
+        <div style="display: inline-block; margin-bottom: 0.3rem;">
+            <svg width="60" height="60" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 6px 16px rgba(56, 189, 248, 0.5));">
+                <rect width="48" height="48" rx="14" fill="url(#buffaloHeaderGrad)" />
+                <rect x="1" y="1" width="46" height="46" rx="13" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" />
+                <path d="M24 7C24 7 13 18.5 13 26C13 32.0751 17.9249 37 24 37C30.0751 37 35 32.0751 35 26C35 18.5 24 7 24 7Z" fill="#ffffff" fill-opacity="0.96" />
+                <path d="M14.5 20C11.5 17.5 10 15 9.5 12.5C12 13.5 15 15.5 17.5 18.5L14.5 20Z" fill="#0f172a" />
+                <path d="M33.5 20C36.5 17.5 38 15 38.5 12.5C36 13.5 33 15.5 30.5 18.5L33.5 20Z" fill="#0f172a" />
+                <path d="M24 17C20.5 17 17.5 19.2 16.5 22.5C15.8 24.8 16.2 27.2 17.5 29C19.2 31.2 21.8 32.5 24 32.5C26.2 32.5 28.8 31.2 30.5 29C31.8 27.2 32.2 24.8 31.5 22.5C30.5 19.2 27.5 17 24 17ZM20.5 23.5C20.5 22.7 21.2 22 22 22C22.8 22 23.5 22.7 23.5 23.5C23.5 24.3 22.8 25 22 25C21.2 25 20.5 24.3 20.5 23.5ZM27.5 23.5C27.5 22.7 26.8 22 26 22C25.2 22 24.5 22.7 24.5 23.5C24.5 24.3 25.2 25 26 25C26.8 25 27.5 24.3 27.5 23.5Z" fill="#0284c7" />
+                <defs>
+                    <linearGradient id="buffaloHeaderGrad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#0284c7" />
+                        <stop offset="0.5" stop-color="#38bdf8" />
+                        <stop offset="1" stop-color="#1e1b4b" />
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+        <h2 style="font-size: 1.8rem; font-weight: 800; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.5); margin-bottom: 0.2rem;">Welcome to FreshDairy Store</h2>
+        <p style="color: rgba(255,255,255,0.9); font-size: 0.92rem; text-shadow: 0 1px 6px rgba(0,0,0,0.4);">Access fresh daily milk, subscriptions, and dairy ordering.</p>
+    </div>
+
+    <!-- Mobile Tab Switcher fallback -->
+    <div class="mobile-tab-switch" style="margin-bottom: 1rem; gap: 0.5rem; background: rgba(15,23,42,0.8); padding: 4px; border-radius: 12px;">
+        <button id="mobileSignInBtn" class="tab-btn active" style="flex: 1; padding: 0.6rem; border-radius: 8px; font-weight: 700;" onclick="toggleAuthMode(false)">Sign In</button>
+        <button id="mobileSignUpBtn" class="tab-btn" style="flex: 1; padding: 0.6rem; border-radius: 8px; font-weight: 700;" onclick="toggleAuthMode(true)">Create Account</button>
+    </div>
+
+    <!-- AppVibed01 Animated Auth Switch Card Container -->
+    <div class="auth-switch-card" id="authSwitchCard">
+
+        <!-- Sign In Form (Left Container) -->
+        <div class="auth-form-container sign-in-container">
+            <form onsubmit="handleLoginSubmit(event)">
+                <h1 style="font-size: 1.75rem; font-weight: 800; text-align: center; margin-bottom: 0.3rem; color: #ffffff !important;">Sign In</h1>
+                
+                <!-- Social Logins Row -->
+                <div class="social-icons-row">
+                    <button type="button" class="social-icon-btn" title="Sign in with Google" onclick="DairyApp.showToast('Google login ready', 'info')">
+                        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12.545 10.239v3.821h5.445c-0.712 2.315-2.647 3.972-5.445 3.972-3.332 0-6.033-2.701-6.033-6.032s2.701-6.032 6.033-6.032c1.498 0 2.866 0.549 3.921 1.453l2.814-2.814c-1.79-1.677-4.184-2.702-6.735-2.702-5.522 0-10 4.478-10 10s4.478 10 10 10c8.396 0 10.249-7.85 9.426-11.728l-9.426 0.063z"/></svg>
+                    </button>
+                    <button type="button" class="social-icon-btn" title="Sign in with Facebook" onclick="DairyApp.showToast('Facebook login ready', 'info')">
+                        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </button>
+                    <button type="button" class="social-icon-btn" title="Sign in with GitHub" onclick="DairyApp.showToast('GitHub login ready', 'info')">
+                        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    </button>
+                    <button type="button" class="social-icon-btn" title="Sign in with LinkedIn" onclick="DairyApp.showToast('LinkedIn login ready', 'info')">
+                        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                    </button>
+                </div>
+
+                <div class="auth-divider-text" style="color: #cbd5e1 !important;">or use your email & password</div>
+
+                <div class="form-group" style="margin-bottom: 0.8rem;">
+                    <label class="form-label" style="color: #e2e8f0 !important; font-weight: 700;">Email Address</label>
+                    <div class="input-with-icon-wrap">
+                        <span class="input-icon">📧</span>
+                        <input type="email" id="loginEmail" class="form-input" required placeholder="Enter your email" style="padding-left: 3.2rem !important; color: #ffffff !important; background: rgba(255, 255, 255, 0.08) !important;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0.8rem;">
+                    <label class="form-label" style="color: #e2e8f0 !important; font-weight: 700;">Password</label>
+                    <div class="input-with-icon-wrap">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="loginPassword" class="form-input" required placeholder="Enter your password" style="padding-left: 3.2rem !important; color: #ffffff !important; background: rgba(255, 255, 255, 0.08) !important;">
+                    </div>
+                </div>
+
+                <div style="text-align: right; margin-bottom: 1rem;">
+                    <a href="javascript:void(0)" onclick="DairyApp.showToast('Password reset link sent to email', 'info')" style="font-size: 0.8rem; color: #38bdf8; text-decoration: none;">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn-with-icon" style="width: 100%; border-radius: 9999px;">
+                    <span class="btn-text">SIGN IN</span>
+                    <div class="btn-icon-wrapper">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                    </div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Sign Up Form (Right Container) -->
+        <div class="auth-form-container sign-up-container">
+            <form onsubmit="handleRegisterSubmit(event)">
+                <h1 style="font-size: 1.6rem; font-weight: 800; text-align: center; margin-bottom: 0.2rem; color: #ffffff !important;">Create Account</h1>
+
+                <div class="social-icons-row">
+                    <button type="button" class="social-icon-btn" title="Sign up with Google" onclick="DairyApp.showToast('Google signup ready', 'info')"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12.545 10.239v3.821h5.445c-0.712 2.315-2.647 3.972-5.445 3.972-3.332 0-6.033-2.701-6.033-6.032s2.701-6.032 6.033-6.032c1.498 0 2.866 0.549 3.921 1.453l2.814-2.814c-1.79-1.677-4.184-2.702-6.735-2.702-5.522 0-10 4.478-10 10s4.478 10 10 10c8.396 0 10.249-7.85 9.426-11.728l-9.426 0.063z"/></svg></button>
+                    <button type="button" class="social-icon-btn" title="Sign up with Facebook" onclick="DairyApp.showToast('Facebook signup ready', 'info')"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></button>
+                    <button type="button" class="social-icon-btn" title="Sign up with GitHub" onclick="DairyApp.showToast('GitHub signup ready', 'info')"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></button>
+                </div>
+
+                <div class="auth-divider-text" style="color: #cbd5e1 !important;">or use your details for registration</div>
+
+                <div class="form-group" style="margin-bottom: 0.6rem;">
+                    <div class="input-with-icon-wrap">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="regName" class="form-input" required placeholder="Full Name" style="padding-left: 3.2rem !important; color: #ffffff !important; background: rgba(255, 255, 255, 0.08) !important;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0.6rem;">
+                    <div class="input-with-icon-wrap">
+                        <span class="input-icon">📧</span>
+                        <input type="email" id="regEmail" class="form-input" required placeholder="Email Address" style="padding-left: 3.2rem !important; color: #ffffff !important; background: rgba(255, 255, 255, 0.08) !important;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0.6rem;">
+                    <div class="input-with-icon-wrap">
+                        <span class="input-icon">📱</span>
+                        <input type="tel" id="regPhone" class="form-input" placeholder="Mobile Phone" style="padding-left: 3.2rem !important; color: #ffffff !important; background: rgba(255, 255, 255, 0.08) !important;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0.6rem;">
+                    <div class="input-with-icon-wrap">
+                        <span class="input-icon">🏠</span>
+                        <textarea id="regAddress" class="form-textarea" rows="2" placeholder="Delivery Address" style="padding-left: 3.2rem !important; color: #ffffff !important; background: rgba(255, 255, 255, 0.08) !important;"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0.75rem;">
+                    <div class="input-with-icon-wrap">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="regPassword" class="form-input" required placeholder="Password" style="padding-left: 3.2rem !important; color: #ffffff !important; background: rgba(255, 255, 255, 0.08) !important;">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-with-icon" style="width: 100%; border-radius: 9999px; background: linear-gradient(135deg, var(--accent), #d97706);">
+                    <span class="btn-text">SIGN UP</span>
+                    <div class="btn-icon-wrapper">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                    </div>
+                </button>
+            </form>
+        </div>
+
+        <!-- The Animated Sliding Overlay Banner -->
+        <div class="toggle-overlay-container">
+            <div class="toggle-banner">
+                
+                <!-- Left Panel (shown when in Sign Up mode) -->
+                <div class="toggle-panel-box toggle-left-panel">
+                    <h1>Welcome Back!</h1>
+                    <p>To keep connected with us please login with your personal account details</p>
+                    <button class="btn-ghost-outline" onclick="toggleAuthMode(false)">SIGN IN</button>
+                </div>
+
+                <!-- Right Panel (shown when in Sign In mode) -->
+                <div class="toggle-panel-box toggle-right-panel">
+                    <h1>Hello, Friend!</h1>
+                    <p>Register with your personal details to use all of FreshDairy features & subscriptions</p>
+                    <button class="btn-ghost-outline" onclick="toggleAuthMode(true)">SIGN UP</button>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Store Owner Direct Portal Banner Link -->
+    <div style="margin-top: 1rem; text-align: center; font-size: 0.88rem; color: rgba(255,255,255,0.85); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">
+        🔑 Are you the Store Owner? <a href="{{ url_for('owner_login_page') }}" style="color: #38bdf8; font-weight: 700; text-decoration: underline;">Open Owner Portal & Monitor Store →</a>
+    </div>
+
+</div>
+
+<script>
+function toggleAuthMode(isSignUp) {
+    const card = document.getElementById('authSwitchCard');
+    const mobileSignInBtn = document.getElementById('mobileSignInBtn');
+    const mobileSignUpBtn = document.getElementById('mobileSignUpBtn');
+
+    if (isSignUp) {
+        card.classList.add('active');
+        if (mobileSignInBtn && mobileSignUpBtn) {
+            mobileSignInBtn.classList.remove('active');
+            mobileSignUpBtn.classList.add('active');
+        }
+    } else {
+        card.classList.remove('active');
+        if (mobileSignInBtn && mobileSignUpBtn) {
+            mobileSignUpBtn.classList.remove('active');
+            mobileSignInBtn.classList.add('active');
+        }
+    }
+}
+
+async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            DairyApp.showToast('Logged in successfully!', 'success');
+            setTimeout(() => {
+                if (data.user.role === 'admin') window.location.href = '/admin';
+                else window.location.href = '/';
+            }, 500);
+        } else {
+            DairyApp.showToast(data.message || 'Login failed', 'error');
+        }
+    } catch (err) {
+        DairyApp.showToast('Network error logging in.', 'error');
+    }
+}
+
+async function handleRegisterSubmit(e) {
+    e.preventDefault();
+    const name = document.getElementById('regName').value;
+    const email = document.getElementById('regEmail').value;
+    const phone = document.getElementById('regPhone').value;
+    const address = document.getElementById('regAddress').value;
+    const password = document.getElementById('regPassword').value;
+
+    try {
+        const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, phone, address, password })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            DairyApp.showToast('Account created successfully!', 'success');
+            setTimeout(() => { window.location.href = '/'; }, 600);
+        } else {
+            DairyApp.showToast(data.message || 'Registration failed', 'error');
+        }
+    } catch (err) {
+        DairyApp.showToast('Network error registering account.', 'error');
+    }
+}
+</script>
+{% endblock %}

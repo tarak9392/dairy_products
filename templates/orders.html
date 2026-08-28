@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders & Subscriptions - Dairy Products Ordering System{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">My Orders & Subscriptions</h1>
+    <p style="color: var(--text-secondary);">Track your recent order statuses and manage ongoing dairy subscription schedules.</p>
+</div>
+
+<div class="card">
+    <div id="userOrdersContainer">
+        <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+            Loading your orders...
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    fetchUserOrders();
+});
+
+async function fetchUserOrders() {
+    const container = document.getElementById('userOrdersContainer');
+    try {
+        const res = await fetch('/api/user/orders');
+        const data = await res.json();
+
+        if (data.success) {
+            renderOrdersList(data.orders);
+        } else {
+            container.innerHTML = '<div style="text-align: center; color: var(--danger); padding: 2rem;">Failed to load orders.</div>';
+        }
+    } catch (err) {
+        container.innerHTML = '<div style="text-align: center; color: var(--danger); padding: 2rem;">Error connecting to server.</div>';
+    }
+}
+
+function renderTrackingTimeline(status) {
+    if (status === 'Cancelled') {
+        return '<div style="background: #fee2e2; color: #dc2626; padding: 0.75rem; border-radius: var(--radius-md); font-weight: 700; text-align: center; margin: 1rem 0;">❌ Order Cancelled</div>';
+    }
+
+    const steps = [
+        { label: 'Order Placed', icon: '📝' },
+        { label: 'Packed & Ready', icon: '📦' },
+        { label: 'Out for Delivery', icon: '🚚' },
+        { label: 'Delivered', icon: '🏠' }
+    ];
+
+    let currentStepIndex = 0;
+    if (status === 'Processing') currentStepIndex = 1;
+    if (status === 'Out for Delivery') currentStepIndex = 2;
+    if (status === 'Delivered') currentStepIndex = 3;
+
+    return `
+        <div style="margin: 1.25rem 0; background: #ffffff; border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 1rem;">Live Order Tracking Progress</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; position: relative;">
+                <div style="position: absolute; top: 18px; left: 10%; right: 10%; height: 4px; background: #e2e8f0; z-index: 1;"></div>
+                <div style="position: absolute; top: 18px; left: 10%; width: ${(currentStepIndex / 3) * 80}%; height: 4px; background: var(--primary); z-index: 1; transition: var(--transition-smooth);"></div>
+                ${steps.map((step, idx) => {
+                    const isPassed = idx <= currentStepIndex;
+                    const isCurrent = idx === currentStepIndex;
+                    return `
+                        <div style="z-index: 2; display: flex; flex-direction: column; align-items: center; flex: 1;">
+                            <div style="width: 38px; height: 38px; border-radius: 50%; background: ${isPassed ? 'var(--primary)' : '#e2e8f0'}; color: ${isPassed ? 'white' : 'var(--text-muted)'}; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: ${isCurrent ? '0 0 0 4px rgba(2,132,199,0.25)' : 'none'};">
+                                ${step.icon}
+                            </div>
+                            <span style="font-size: 0.75rem; font-weight: ${isCurrent ? '800' : '600'}; color: ${isPassed ? 'var(--text-primary)' : 'var(--text-muted)'}; margin-top: 0.4rem; text-align: center;">
+                                ${step.label}
+                            </span>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function renderOrdersList(orders) {
+    const container = document.getElementById('userOrdersContainer');
+    if (orders.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem;">📦</div>
+                <h3>No past orders found</h3>
+                <p style="margin-top: 0.5rem;"><a href="/products" class="btn btn-sm btn-primary">Browse Products & Place Order</a></p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = orders.map(order => {
+        let statusClass = 'status-pending';
+        if (order.status === 'Processing') statusClass = 'status-processing';
+        if (order.status === 'Out for Delivery') statusClass = 'status-out-for-delivery';
+        if (order.status === 'Delivered') statusClass = 'status-delivered';
+        if (order.status === 'Cancelled') statusClass = 'status-cancelled';
+
+        const canCancel = (order.status === 'Pending' || order.status === 'Processing');
+
+        return `
+            <div style="border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem; background: #fafafa;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid #e2e8f0;">
+                    <div>
+                        <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-primary);">
+                            Order #${order.id} 
+                            ${order.order_type === 'subscription' ? '<span style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 99px; margin-left: 0.5rem;">📅 Daily Subscription</span>' : '<span style="background: #f1f5f9; color: #475569; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 99px; margin-left: 0.5rem;">🛍️ One-Time</span>'}
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">Placed on: ${new Date(order.created_at).toLocaleString()}</div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span class="status-badge ${statusClass}">${order.status}</span>
+                        ${canCancel ? `<button class="btn btn-sm btn-danger" onclick="cancelOrder(${order.id})">Cancel Order</button>` : ''}
+                    </div>
+                </div>
+
+                ${renderTrackingTimeline(order.status)}
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                    <div>
+                        <h5 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;">Items</h5>
+                        ${order.items.map(item => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0;">
+                                <span>${item.image_symbol || '🥛'} <strong>${item.product_name}</strong> (${item.unit || ''}) × ${item.quantity}</span>
+                                <span style="font-weight: 700;">₹${item.subtotal.toFixed(2)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div style="border-left: 1px solid #e2e8f0; padding-left: 1.25rem;">
+                        <h5 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;">Delivery & Payment</h5>
+                        <div style="font-size: 0.88rem; margin-bottom: 0.4rem;">📍 <strong>Address:</strong> ${order.delivery_address}</div>
+                        <div style="font-size: 0.88rem; margin-bottom: 0.4rem;">⏰ <strong>Slot:</strong> ${order.delivery_slot}</div>
+                        <div style="font-size: 0.88rem; margin-bottom: 0.4rem;">
+                            💳 <strong>Payment:</strong> ${order.payment_method} 
+                            <span style="font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.78rem; background: ${order.payment_status === 'Paid' ? '#dcfce7' : '#fef9c3'}; color: ${order.payment_status === 'Paid' ? '#15803d' : '#a16207'};">
+                                ${order.payment_status === 'Paid' ? '🟢 PAID' : '🟡 PENDING'}
+                            </span> 
+                            ${order.transaction_id ? `<br><span style="font-size: 0.78rem; font-weight: 600; color: var(--primary); font-family: monospace;">Ref: ${order.transaction_id}</span>` : ''}
+                        </div>
+                        ${order.coupon_code ? `<div style="font-size: 0.88rem; color: var(--success);">🎟️ <strong>Coupon:</strong> ${order.coupon_code} (-₹${(order.discount_amount || 0).toFixed(2)})</div>` : ''}
+                        ${order.order_type === 'subscription' ? `<div style="font-size: 0.88rem; color: var(--primary);">🔁 <strong>Schedule:</strong> ${order.sub_frequency} starting ${order.sub_start_date}</div>` : ''}
+                        
+                        <div style="margin-top: 0.75rem; font-size: 1.15rem; font-weight: 800; color: var(--primary-hover); display: flex; justify-content: space-between; align-items: center;">
+                            <span>Total: ₹${order.total_amount.toFixed(2)}</span>
+                            <a href="/orders/${order.id}/invoice" target="_blank" class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 0.25rem 0.6rem;">📄 Print Invoice</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function cancelOrder(orderId) {
+    if (!confirm('Are you sure you want to cancel this order?')) return;
+
+    try {
+        const res = await fetch(`/api/orders/${orderId}/cancel`, { method: 'POST' });
+        const data = await res.json();
+
+        if (data.success) {
+            DairyApp.showToast(data.message, 'success');
+            fetchUserOrders();
+        } else {
+            DairyApp.showToast(data.message, 'error');
+        }
+    } catch (err) {
+        DairyApp.showToast('Failed to cancel order.', 'error');
+    }
+}
+</script>
+{% endblock %}

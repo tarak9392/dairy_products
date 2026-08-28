@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Fresh Dairy - Web-Based Dairy Products Ordering System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Farm Fresh Dairy Delivered <span>To Your Doorstep</span> Daily</h1>
+        <p class="hero-desc">Experience pure, unadulterated milk, organic curd, fresh paneer, and artisanal ghee. Order one-time or setup hassle-free daily morning subscriptions!</p>
+        <div class="hero-btns">
+            <a href="{{ url_for('products_page') }}" class="btn-with-icon">
+                <span class="btn-text">Explore Products</span>
+                <div class="btn-icon-wrapper">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                </div>
+            </a>
+            <a href="{{ url_for('products_page', category='Milk') }}" class="btn btn-secondary" style="font-size: 1.05rem; padding: 0.8rem 1.6rem; background: rgba(255,255,255,0.2); color: white;">Start Milk Subscription 🥛</a>
+        </div>
+    </div>
+    <div class="hero-card">
+        <div class="hero-card-icon">🥛</div>
+        <h3>100% Pure & Fresh</h3>
+        <p>Morning deliveries scheduled straight from farm pasteurization to your doorstep before 7 AM.</p>
+    </div>
+</section>
+
+<!-- Features Grid -->
+<div class="features-grid">
+    <div class="feature-card">
+        <div class="feature-icon">🚀</div>
+        <h3>Real-Time Processing</h3>
+        <p>Instant order confirmation and live delivery tracking for customers and admin vendors.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">📅</div>
+        <h3>Daily Subscriptions</h3>
+        <p>Flexible daily, alternate day, or weekly schedules with easy pause and resume options.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3>Quality Guaranteed</h3>
+        <p>Strict quality tests, hygienic cold chain storage, and freshness tracking on all items.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Centralized Management</h3>
+        <p>Empowers vendors with automated stock alerts, order dispatch, and financial reporting.</p>
+    </div>
+</div>
+
+<!-- Featured Products Section -->
+<div class="section-header">
+    <div>
+        <h2 class="section-title">Popular Dairy Essentials</h2>
+        <p class="section-subtitle">Handpicked fresh recommendations for your family</p>
+    </div>
+    <a href="{{ url_for('products_page') }}" class="btn btn-outline">View All Products &rarr;</a>
+</div>
+
+<div class="products-grid">
+    {% for product in featured_products %}
+    <div class="product-card">
+        <div class="product-image-wrap">
+            {% if product['image_url'] %}
+                <img src="{{ product['image_url'] }}" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span style="display:none;">{{ product['image_symbol'] or '🥛' }}</span>
+            {% else %}
+                <span>{{ product['image_symbol'] or '🥛' }}</span>
+            {% endif %}
+            <span class="product-category-tag">{{ product['category'] }}</span>
+            {% if product['stock'] > 20 %}
+                <span class="product-stock-badge stock-in">In Stock</span>
+            {% elif product['stock'] > 0 %}
+                <span class="product-stock-badge stock-low">Only {{ product['stock'] }} left</span>
+            {% else %}
+                <span class="product-stock-badge stock-out">Out of Stock</span>
+            {% endif %}
+        </div>
+        <div class="product-body">
+            <h3 class="product-title">{{ product['name'] }}</h3>
+            <div class="product-unit">{{ product['unit'] }}</div>
+            <p class="product-desc">{{ product['description'] }}</p>
+            <div class="product-footer">
+                <div class="product-price">₹{{ '%.2f'|format(product['price']) }}</div>
+                <div class="product-actions">
+                    <button class="btn btn-sm btn-primary" onclick="addToCartFromHome({{ product['id'] }}, '{{ product['name'] }}', {{ product['price'] }}, '{{ product['unit'] }}', '{{ product['image_symbol'] }}')">+ Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function addToCartFromHome(id, name, price, unit, symbol) {
+    DairyApp.addToCart({ id, name, price, unit, image_symbol: symbol }, 1, false);
+}
+</script>
+{% endblock %}

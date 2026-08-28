@@ -1,0 +1,606 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Control Center - Dairy Products Management System{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Admin Management Portal</h1>
+        <p style="color: var(--text-secondary);">Manage products, track customer orders, update stock levels, and monitor revenues.</p>
+    </div>
+    <button class="btn btn-primary" onclick="openAddProductModal()">+ Add New Dairy Product</button>
+</div>
+
+<!-- KPI Cards -->
+<div class="admin-kpis">
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;">💰</div>
+        <div>
+            <div class="kpi-val" id="kpiRevenue">₹0.00</div>
+            <div class="kpi-lbl">Total Revenue</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background: #fef3c7; color: #d97706;">📦</div>
+        <div>
+            <div class="kpi-val" id="kpiOrders">0</div>
+            <div class="kpi-lbl">Total Orders</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background: #fae8ff; color: #c026d3;">📅</div>
+        <div>
+            <div class="kpi-val" id="kpiSubscriptions">0</div>
+            <div class="kpi-lbl">Active Subscriptions</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background: #fee2e2; color: #dc2626;">⚠️</div>
+        <div>
+            <div class="kpi-val" id="kpiLowStock">0</div>
+            <div class="kpi-lbl">Low Stock Alerts</div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Tabs -->
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchAdminTab('ordersTab', this)">📦 Orders & Fulfillment</button>
+    <button class="tab-btn" onclick="switchAdminTab('productsTab', this)">🥛 Products & Inventory</button>
+    <button class="tab-btn" onclick="switchAdminTab('paymentsTab', this)">💳 Merchant Payment Credentials</button>
+    <button class="tab-btn" onclick="switchAdminTab('analyticsTab', this)">📊 Stock & Category Analytics</button>
+</div>
+
+<!-- Tab 1: Orders & Fulfillment -->
+<div id="ordersTab" class="tab-content">
+    <div class="card">
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; justify-content: space-between; align-items: center;">
+            <h2 style="font-size: 1.3rem;">Order Management</h2>
+            
+            <div style="display: flex; gap: 1rem;">
+                <select id="adminStatusFilter" class="form-select" style="width: auto;" onchange="fetchAdminOrders()">
+                    <option value="All">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Out for Delivery">Out for Delivery</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+                <select id="adminTypeFilter" class="form-select" style="width: auto;" onchange="fetchAdminOrders()">
+                    <option value="All">All Types</option>
+                    <option value="one-time">One-Time Orders</option>
+                    <option value="subscription">Subscriptions</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Type & Slot</th>
+                        <th>Items Summary</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Update Status</th>
+                    </tr>
+                </thead>
+                <tbody id="adminOrdersTable">
+                    <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading orders...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Tab 2: Products & Inventory -->
+<div id="productsTab" class="tab-content" style="display: none;">
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.3rem;">Product Catalog & Stock Management</h2>
+            <button class="btn btn-sm btn-primary" onclick="fetchAdminProducts()">Refresh List</button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Unit</th>
+                        <th>Stock Level</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="adminProductsTable">
+                    <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading products...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Tab 3: Merchant Payment Credentials -->
+<div id="paymentsTab" class="tab-content" style="display: none;">
+    <div class="card">
+        <div style="margin-bottom: 1.5rem; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h2 style="font-size: 1.3rem; margin-bottom: 0.4rem;">Merchant Payment Gateway & Credentials</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Configure your live or test API keys for Razorpay, Stripe, and Direct Merchant UPI so customer payments reach your account directly.</p>
+            </div>
+            <div id="gatewayStatusBadges" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <span class="badge" style="background: #e0f2fe; color: #0369a1;">Razorpay: <strong id="statusBadgeRzp">Checking...</strong></span>
+                <span class="badge" style="background: #f3e8ff; color: #6b21a8;">Stripe: <strong id="statusBadgeStripe">Checking...</strong></span>
+            </div>
+        </div>
+
+        <!-- Guidance Banner -->
+        <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #86efac; border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.88rem; color: #166534;">
+            <strong>💡 How Real Payment Gateway Keys Work:</strong>
+            <ul style="margin-top: 0.5rem; margin-bottom: 0; padding-left: 1.2rem;">
+                <li><strong>Razorpay:</strong> Create a free account at <a href="https://dashboard.razorpay.com/" target="_blank" style="color: #15803d; text-decoration: underline;">dashboard.razorpay.com</a> &rarr; <em>Account & Settings &rarr; API Keys</em> to copy your Key ID and Key Secret.</li>
+                <li><strong>Stripe:</strong> Create a free account at <a href="https://dashboard.stripe.com/" target="_blank" style="color: #15803d; text-decoration: underline;">dashboard.stripe.com</a> &rarr; <em>Developers &rarr; API Keys</em> to copy your Publishable Key & Secret Key.</li>
+                <li><strong>Direct UPI:</strong> Simply enter your merchant UPI ID (e.g. <code>41837498566@sbi</code> or <code>store@upi</code>) to receive direct UPI payments via GPay/PhonePe!</li>
+            </ul>
+        </div>
+
+        <form id="paymentSettingsForm" onsubmit="savePaymentSettings(event)">
+            <div style="background: #f8fafc; border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+                <h4 style="color: var(--primary-hover); margin-bottom: 1rem;">📱 Direct Merchant UPI & Bank Account Settings</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Merchant Name / Store Title</label>
+                        <input type="text" id="cfgMerchantName" class="form-input" placeholder="Fresh Dairy Products">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Merchant UPI VPA ID (GPay / PhonePe / Paytm / BHIM)</label>
+                        <input type="text" id="cfgMerchantUpi" class="form-input" placeholder="e.g. 41837498566@sbi or store@upi">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Bank Name</label>
+                        <input type="text" id="cfgBankName" class="form-input" placeholder="State Bank of India">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Account Number</label>
+                        <input type="text" id="cfgAccountNum" class="form-input" placeholder="41837498566">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">IFSC Code</label>
+                        <input type="text" id="cfgIfsc" class="form-input" placeholder="SBIN0000784">
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+                <h4 style="color: var(--primary-hover); margin-bottom: 1rem;">🇮🇳 Razorpay Payment Gateway Credentials</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Razorpay Key ID (rzp_test_... or rzp_live_...)</label>
+                        <input type="text" id="cfgRzpKeyId" class="form-input" placeholder="rzp_test_... or rzp_live_...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Razorpay Key Secret</label>
+                        <input type="password" id="cfgRzpKeySecret" class="form-input" placeholder="Enter Razorpay Secret Key">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label class="form-label">Razorpay Webhook Secret (Optional)</label>
+                        <input type="password" id="cfgRzpWebhookSecret" class="form-input" placeholder="whsec_... (For real-time background payment capture)">
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+                <h4 style="color: var(--primary-hover); margin-bottom: 1rem;">💳 Stripe Gateway Credentials</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Stripe Publishable Key (pk_test_... or pk_live_...)</label>
+                        <input type="text" id="cfgStripePubKey" class="form-input" placeholder="pk_test_... or pk_live_...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stripe Secret Key (sk_test_... or sk_live_...)</label>
+                        <input type="password" id="cfgStripeSecKey" class="form-input" placeholder="sk_test_... or sk_live_...">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-accent" style="padding: 0.85rem 1.8rem; font-size: 1rem;">Save Merchant Credentials 💾</button>
+        </form>
+    </div>
+</div>
+
+<!-- Tab 4: Stock Analytics -->
+<div id="analyticsTab" class="tab-content" style="display: none;">
+    <div class="card">
+        <h2 style="font-size: 1.3rem; margin-bottom: 1.5rem;">Inventory Breakdown by Category</h2>
+        <div id="categoryAnalyticsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem;">
+            <!-- Category cards rendered here -->
+        </div>
+    </div>
+</div>
+
+<!-- Product Add / Edit Modal -->
+<div id="productModal" class="modal-overlay">
+    <div class="modal-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2 id="productModalTitle">Add New Product</h2>
+            <button class="btn btn-sm btn-secondary" onclick="closeProductModal()">✕</button>
+        </div>
+
+        <form id="productForm" onsubmit="saveProduct(event)">
+            <input type="hidden" id="prodEditId">
+            
+            <div class="form-group">
+                <label class="form-label">Product Name</label>
+                <input type="text" id="prodName" class="form-input" required placeholder="e.g. Farm Fresh Whole Milk">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select id="prodCategory" class="form-select">
+                        <option value="Milk">Milk</option>
+                        <option value="Curd & Yogurt">Curd & Yogurt</option>
+                        <option value="Paneer & Butter">Paneer & Butter</option>
+                        <option value="Ghee & Sweets">Ghee & Sweets</option>
+                        <option value="Beverages">Beverages</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Price (₹)</label>
+                    <input type="number" step="0.5" id="prodPrice" class="form-input" required placeholder="32.00">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Unit Size</label>
+                    <input type="text" id="prodUnit" class="form-input" required placeholder="e.g. 500 ml, 200 g">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stock Quantity</label>
+                    <input type="number" id="prodStock" class="form-input" required placeholder="100">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 3fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Emoji Icon</label>
+                    <input type="text" id="prodSymbol" class="form-input" value="🥛">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <input type="text" id="prodDesc" class="form-input" placeholder="Short description of dairy item">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Product</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let adminProductsList = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    fetchAdminStats();
+    fetchAdminOrders();
+    fetchAdminProducts();
+    fetchPaymentSettings();
+});
+
+function switchAdminTab(tabId, btn) {
+    document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId).style.display = 'block';
+    btn.classList.add('active');
+}
+
+async function fetchAdminStats() {
+    try {
+        const res = await fetch('/api/admin/stats');
+        const data = await res.json();
+
+        if (data.success) {
+            const s = data.stats;
+            document.getElementById('kpiRevenue').textContent = `₹${s.total_revenue.toFixed(2)}`;
+            document.getElementById('kpiOrders').textContent = s.total_orders;
+            document.getElementById('kpiSubscriptions').textContent = s.active_subscriptions;
+            document.getElementById('kpiLowStock').textContent = s.low_stock_count;
+
+            renderAnalytics(s.categories);
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function renderAnalytics(categories) {
+    const container = document.getElementById('categoryAnalyticsContainer');
+    container.innerHTML = categories.map(cat => `
+        <div style="background: #f8fafc; border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 1.25rem;">
+            <h4 style="font-size: 1.1rem; color: var(--primary-hover); margin-bottom: 0.5rem;">${cat.category}</h4>
+            <div style="font-size: 0.9rem; color: var(--text-secondary);">Total Products: <strong>${cat.count}</strong></div>
+            <div style="font-size: 0.9rem; color: var(--text-secondary);">Total Units Stocked: <strong>${cat.total_stock}</strong></div>
+        </div>
+    `).join('');
+}
+
+async function fetchAdminOrders() {
+    const tableBody = document.getElementById('adminOrdersTable');
+    const status = document.getElementById('adminStatusFilter').value;
+    const type = document.getElementById('adminTypeFilter').value;
+
+    try {
+        const res = await fetch(`/api/admin/orders?status=${status}&type=${type}`);
+        const data = await res.json();
+
+        if (data.success) {
+            renderAdminOrders(data.orders);
+        }
+    } catch (e) {
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--danger);">Error loading orders</td></tr>';
+    }
+}
+
+function renderAdminOrders(orders) {
+    const tableBody = document.getElementById('adminOrdersTable');
+    if (orders.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:2rem;">No matching orders found.</td></tr>';
+        return;
+    }
+
+    tableBody.innerHTML = orders.map(o => {
+        let statusClass = 'status-pending';
+        if (o.status === 'Processing') statusClass = 'status-processing';
+        if (o.status === 'Out for Delivery') statusClass = 'status-out-for-delivery';
+        if (o.status === 'Delivered') statusClass = 'status-delivered';
+        if (o.status === 'Cancelled') statusClass = 'status-cancelled';
+
+        const itemsSummary = o.items.map(i => `${i.product_name} (×${i.quantity})`).join(', ');
+
+        return `
+            <tr>
+                <td><strong>#${o.id}</strong></td>
+                <td>
+                    <strong>${o.customer_name}</strong><br>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">${o.customer_phone || o.customer_email}</span>
+                </td>
+                <td>
+                    ${o.order_type === 'subscription' ? '📅 Subscription' : '🛍️ One-Time'}<br>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">${o.delivery_slot}</span>
+                </td>
+                <td style="max-width: 250px; font-size: 0.88rem;">${itemsSummary}</td>
+                <td><strong>₹${o.total_amount.toFixed(2)}</strong></td>
+                <td><span class="status-badge ${statusClass}">${o.status}</span></td>
+                <td>
+                    <select class="form-select" style="font-size: 0.85rem; padding: 0.35rem 0.5rem;" onchange="updateOrderStatus(${o.id}, this.value)">
+                        <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                        <option value="Out for Delivery" ${o.status === 'Out for Delivery' ? 'selected' : ''}>Out for Delivery</option>
+                        <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                        <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                    </select>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+async function updateOrderStatus(orderId, newStatus) {
+    try {
+        const res = await fetch(`/api/admin/orders/${orderId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+        const data = await res.json();
+        if (data.success) {
+            DairyApp.showToast(data.message, 'success');
+            fetchAdminOrders();
+            fetchAdminStats();
+        } else {
+            DairyApp.showToast(data.message, 'error');
+        }
+    } catch (e) {
+        DairyApp.showToast('Failed to update order status.', 'error');
+    }
+}
+
+async function fetchAdminProducts() {
+    const tableBody = document.getElementById('adminProductsTable');
+    try {
+        const res = await fetch('/api/admin/products');
+        const data = await res.json();
+
+        if (data.success) {
+            adminProductsList = data.products;
+            renderAdminProducts(data.products);
+        }
+    } catch (e) {
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--danger);">Error loading products</td></tr>';
+    }
+}
+
+function renderAdminProducts(products) {
+    const tableBody = document.getElementById('adminProductsTable');
+    tableBody.innerHTML = products.map(p => `
+        <tr>
+            <td>
+                <span style="font-size: 1.4rem; margin-right: 0.4rem;">${p.image_symbol || '🥛'}</span>
+                <strong>${p.name}</strong>
+            </td>
+            <td>${p.category}</td>
+            <td><strong>₹${p.price.toFixed(2)}</strong></td>
+            <td>${p.unit}</td>
+            <td>
+                <span style="font-weight: 700; color: ${p.stock < 20 ? 'var(--danger)' : 'var(--text-primary)'};">
+                    ${p.stock} units
+                </span>
+            </td>
+            <td>
+                ${p.is_active ? '<span class="status-badge status-delivered">Active</span>' : '<span class="status-badge status-cancelled">Disabled</span>'}
+            </td>
+            <td>
+                <button class="btn btn-sm btn-secondary" onclick="openEditProductModal(${p.id})">Edit</button>
+                <button class="btn btn-sm ${p.is_active ? 'btn-danger' : 'btn-outline'}" onclick="toggleProductActive(${p.id})">
+                    ${p.is_active ? 'Disable' : 'Enable'}
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function openAddProductModal() {
+    document.getElementById('productModalTitle').textContent = 'Add New Dairy Product';
+    document.getElementById('prodEditId').value = '';
+    document.getElementById('productForm').reset();
+    document.getElementById('productModal').classList.add('active');
+}
+
+function openEditProductModal(prodId) {
+    const prod = adminProductsList.find(p => p.id === prodId);
+    if (!prod) return;
+
+    document.getElementById('productModalTitle').textContent = 'Edit Dairy Product';
+    document.getElementById('prodEditId').value = prod.id;
+    document.getElementById('prodName').value = prod.name;
+    document.getElementById('prodCategory').value = prod.category;
+    document.getElementById('prodPrice').value = prod.price;
+    document.getElementById('prodUnit').value = prod.unit;
+    document.getElementById('prodStock').value = prod.stock;
+    document.getElementById('prodSymbol').value = prod.image_symbol || '🥛';
+    document.getElementById('prodDesc').value = prod.description || '';
+
+    document.getElementById('productModal').classList.add('active');
+}
+
+function closeProductModal() {
+    document.getElementById('productModal').classList.remove('active');
+}
+
+async function saveProduct(e) {
+    e.preventDefault();
+    const editId = document.getElementById('prodEditId').value;
+    const payload = {
+        name: document.getElementById('prodName').value,
+        category: document.getElementById('prodCategory').value,
+        price: parseFloat(document.getElementById('prodPrice').value),
+        unit: document.getElementById('prodUnit').value,
+        stock: parseInt(document.getElementById('prodStock').value, 10),
+        image_symbol: document.getElementById('prodSymbol').value,
+        description: document.getElementById('prodDesc').value
+    };
+
+    const url = editId ? `/api/admin/products/${editId}` : '/api/admin/products';
+    const method = editId ? 'PUT' : 'POST';
+
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            DairyApp.showToast(data.message, 'success');
+            closeProductModal();
+            fetchAdminProducts();
+            fetchAdminStats();
+        } else {
+            DairyApp.showToast(data.message, 'error');
+        }
+    } catch (err) {
+        DairyApp.showToast('Error saving product.', 'error');
+    }
+}
+
+async function toggleProductActive(prodId) {
+    try {
+        const res = await fetch(`/api/admin/products/${prodId}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+            DairyApp.showToast(data.message, 'success');
+            fetchAdminProducts();
+        }
+    } catch (e) {
+        DairyApp.showToast('Failed to toggle product status.', 'error');
+    }
+}
+
+async function fetchPaymentSettings() {
+    try {
+        const res = await fetch('/api/admin/payment-settings');
+        const data = await res.json();
+        if (data.success && data.settings) {
+            const s = data.settings;
+            document.getElementById('cfgMerchantName').value = s.merchant_name || '';
+            document.getElementById('cfgMerchantUpi').value = s.merchant_upi_id || '';
+            document.getElementById('cfgBankName').value = s.bank_name || '';
+            document.getElementById('cfgAccountNum').value = s.account_number || '';
+            document.getElementById('cfgIfsc').value = s.ifsc_code || '';
+            document.getElementById('cfgRzpKeyId').value = s.razorpay_key_id || '';
+            document.getElementById('cfgRzpKeySecret').value = s.razorpay_key_secret || '';
+            document.getElementById('cfgRzpWebhookSecret').value = s.razorpay_webhook_secret || '';
+            document.getElementById('cfgStripePubKey').value = s.stripe_publishable_key || '';
+            document.getElementById('cfgStripeSecKey').value = s.stripe_secret_key || '';
+
+            const badgeRzp = document.getElementById('statusBadgeRzp');
+            if (badgeRzp) {
+                badgeRzp.textContent = data.is_real_razorpay ? '⚡ Live Keys Configured' : '🧪 Interactive Mode';
+            }
+            const badgeStripe = document.getElementById('statusBadgeStripe');
+            if (badgeStripe) {
+                badgeStripe.textContent = data.is_real_stripe ? '⚡ Live Keys Configured' : '🧪 Interactive Mode';
+            }
+        }
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+async function savePaymentSettings(e) {
+    e.preventDefault();
+    const payload = {
+        merchant_name: document.getElementById('cfgMerchantName').value.trim(),
+        merchant_upi_id: document.getElementById('cfgMerchantUpi').value.trim(),
+        bank_name: document.getElementById('cfgBankName').value.trim(),
+        account_number: document.getElementById('cfgAccountNum').value.trim(),
+        ifsc_code: document.getElementById('cfgIfsc').value.trim(),
+        razorpay_key_id: document.getElementById('cfgRzpKeyId').value.trim(),
+        razorpay_key_secret: document.getElementById('cfgRzpKeySecret').value.trim(),
+        razorpay_webhook_secret: document.getElementById('cfgRzpWebhookSecret').value.trim(),
+        stripe_publishable_key: document.getElementById('cfgStripePubKey').value.trim(),
+        stripe_secret_key: document.getElementById('cfgStripeSecKey').value.trim()
+    };
+
+    try {
+        const res = await fetch('/api/admin/payment-settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            DairyApp.showToast(data.message, 'success');
+            await fetchPaymentSettings();
+        } else {
+            DairyApp.showToast(data.message || 'Failed to save settings.', 'error');
+        }
+    } catch(e) {
+        DairyApp.showToast('Network error saving settings.', 'error');
+    }
+}
+</script>
+{% endblock %}

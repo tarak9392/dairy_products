@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}My Wishlist - Dairy Products Ordering System{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">My Saved Wishlist ❤️</h1>
+    <p style="color: var(--text-secondary);">Your saved favorite dairy items for fast re-ordering.</p>
+</div>
+
+<div id="wishlistContainer" class="products-grid">
+    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
+        Loading your wishlist...
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    fetchWishlist();
+});
+
+async function fetchWishlist() {
+    const grid = document.getElementById('wishlistContainer');
+    try {
+        const res = await fetch('/api/wishlist');
+        const data = await res.json();
+
+        if (data.success) {
+            renderWishlist(data.products);
+        } else {
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--danger);">Failed to load wishlist.</div>';
+        }
+    } catch (err) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--danger);">Error connecting to server.</div>';
+    }
+}
+
+function renderWishlist(products) {
+    const grid = document.getElementById('wishlistContainer');
+    if (products.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted);">
+                <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">❤️</div>
+                <h3>Your wishlist is empty!</h3>
+                <p style="margin-top: 0.5rem;"><a href="/products" class="btn btn-sm btn-primary">Explore Products</a></p>
+            </div>
+        `;
+        return;
+    }
+
+    grid.innerHTML = products.map(p => `
+        <div class="product-card">
+            <div class="product-image-wrap">
+                ${p.image_url ? `<img src="${p.image_url}" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><span style="display:none;">${p.image_symbol || '🥛'}</span>` : `<span>${p.image_symbol || '🥛'}</span>`}
+                <span class="product-category-tag">${p.category}</span>
+                <button class="btn btn-sm" style="position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border-radius: 99px; padding: 0.25rem 0.6rem; z-index: 10;" onclick="removeFromWishlist(${p.id})">❤️ Saved</button>
+            </div>
+            <div class="product-body">
+                <h3 class="product-title">${p.name}</h3>
+                <div class="product-unit">${p.unit}</div>
+                <p class="product-desc">${p.description}</p>
+                <div class="product-footer">
+                    <div class="product-price">₹${p.price.toFixed(2)}</div>
+                    <div class="product-actions">
+                        <button class="btn btn-sm btn-primary" onclick="moveToCart(${JSON.stringify(p).replace(/"/g, '&quot;')})">+ Move to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function removeFromWishlist(productId) {
+    try {
+        const res = await fetch('/api/wishlist/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: productId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            DairyApp.showToast(data.message, 'info');
+            fetchWishlist();
+        }
+    } catch (e) {
+        DairyApp.showToast('Failed to update wishlist.', 'error');
+    }
+}
+
+function moveToCart(product) {
+    DairyApp.addToCart(product, 1, false);
+    removeFromWishlist(product.id);
+}
+</script>
+{% endblock %}

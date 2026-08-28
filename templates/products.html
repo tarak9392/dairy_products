@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Products Catalog - Dairy Products Ordering System{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Explore Fresh Dairy Products</h1>
+    <p style="color: var(--text-secondary);">Browse our complete selection of fresh milk, cultured dairy, cottage cheese, ghee, and beverages.</p>
+</div>
+
+<!-- Search & Category Filters -->
+<div class="card" style="margin-bottom: 2rem; padding: 1.25rem;">
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+        <!-- Category Filter Chips -->
+        <div class="filter-bar" style="margin-bottom: 0; padding-bottom: 0;">
+            <button class="filter-chip active" onclick="setCategory('All', this)">All Products</button>
+            <button class="filter-chip" onclick="setCategory('Milk', this)">🥛 Milk</button>
+            <button class="filter-chip" onclick="setCategory('Curd & Yogurt', this)">🥣 Curd & Yogurt</button>
+            <button class="filter-chip" onclick="setCategory('Paneer & Butter', this)">🧀 Paneer & Butter</button>
+            <button class="filter-chip" onclick="setCategory('Ghee & Sweets', this)">🧈 Ghee & Sweets</button>
+            <button class="filter-chip" onclick="setCategory('Beverages', this)">🥤 Beverages</button>
+        </div>
+
+        <!-- Search Bar -->
+        <div style="min-width: 250px; flex: 1; max-width: 380px;">
+            <input type="text" id="searchInput" class="form-input" placeholder="🔍 Search products (e.g. Milk, Paneer)..." oninput="handleSearch()">
+        </div>
+    </div>
+</div>
+
+<!-- Catalog Container -->
+<div id="catalogGrid" class="products-grid">
+    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
+        Loading products...
+    </div>
+</div>
+
+<!-- Quick Subscription Modal -->
+<div id="subModal" class="modal-overlay">
+    <div class="modal-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2 id="modalProdTitle">Start Daily Subscription</h2>
+            <button class="btn btn-sm btn-secondary" onclick="closeSubModal()">✕</button>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: 1.2rem;" id="modalProdDesc">Schedule regular fresh delivery straight to your home.</p>
+        
+        <form id="subForm" onsubmit="submitSubscription(event)">
+            <input type="hidden" id="modalProdId">
+            <div class="form-group">
+                <label class="form-label">Delivery Frequency</label>
+                <select id="modalFreq" class="form-select">
+                    <option value="Daily">Daily Every Morning</option>
+                    <option value="Alternate Days">Alternate Days</option>
+                    <option value="Weekly">Weekly Once</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Quantity per Delivery</label>
+                <input type="number" id="modalQty" class="form-input" value="1" min="1" max="10">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Subscription Start Date</label>
+                <input type="date" id="modalStartDate" class="form-input" required>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeSubModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-accent">Add Subscription to Cart 📅</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentCategory = '{{ selected_category or "All" }}';
+let currentSearch = '';
+let selectedProductForSub = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Set default start date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('modalStartDate').value = tomorrow.toISOString().split('T')[0];
+
+    // Pre-select category if passed in URL query
+    if (currentCategory && currentCategory !== 'All') {
+        const chips = document.querySelectorAll('.filter-chip');
+        chips.forEach(c => {
+            if (c.textContent.includes(currentCategory)) {
+                c.classList.add('active');
+            } else {
+                c.classList.remove('active');
+            }
+        });
+    }
+
+    fetchProducts();
+});
+
+function setCategory(cat, btn) {
+    currentCategory = cat;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    fetchProducts();
+}
+
+function handleSearch() {
+    currentSearch = document.getElementById('searchInput').value;
+    fetchProducts();
+}
+
+async function fetchProducts() {
+    const grid = document.getElementById('catalogGrid');
+    try {
+        const res = await fetch(`/api/products?category=${encodeURIComponent(currentCategory)}&search=${encodeURIComponent(currentSearch)}`);
+        const data = await res.json();
+
+        if (data.success) {
+            renderProducts(data.products);
+        }
+    } catch (err) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--danger);">Failed to load products.</div>';
+    }
+}
+
+function renderProducts(products) {
+    const grid = document.getElementById('catalogGrid');
+    if (products.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted);">No products found matching your search.</div>';
+        return;
+    }
+
+    grid.innerHTML = products.map(p => {
+        let stockBadge = '<span class="product-stock-badge stock-in">In Stock</span>';
+        if (p.stock === 0) stockBadge = '<span class="product-stock-badge stock-out">Out of Stock</span>';
+        else if (p.stock < 20) stockBadge = `<span class="product-stock-badge stock-low">Only ${p.stock} left</span>`;
+
+        return `
+            <div class="product-card">
+                <div class="product-image-wrap">
+                    ${p.image_url ? `<img src="${p.image_url}" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><span style="display:none;">${p.image_symbol || '🥛'}</span>` : `<span>${p.image_symbol || '🥛'}</span>`}
+                    <span class="product-category-tag">${p.category}</span>
+                    <button class="btn btn-sm" style="position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.85); border-radius: 99px; padding: 0.25rem 0.55rem; z-index: 10;" title="Save to Wishlist" onclick="toggleWishlist(${p.id})">❤️</button>
+                </div>
+                <div class="product-body">
+                    <h3 class="product-title">${p.name}</h3>
+                    <div class="product-unit">${p.unit}</div>
+                    <p class="product-desc">${p.description}</p>
+                    <div class="product-footer">
+                        <div class="product-price">₹${p.price.toFixed(2)}</div>
+                        <div class="product-actions">
+                            <button class="btn btn-sm btn-secondary" onclick="openSubModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">📅 Subscribe</button>
+                            <button class="btn btn-sm btn-primary" ${p.stock === 0 ? 'disabled' : ''} onclick="addToCartClick(${JSON.stringify(p).replace(/"/g, '&quot;')})">+ Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function toggleWishlist(productId) {
+    try {
+        const res = await fetch('/api/wishlist/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: productId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            DairyApp.showToast(data.message, 'info');
+        } else {
+            DairyApp.showToast(data.message || 'Please login to save wishlist.', 'error');
+        }
+    } catch(e) {
+        DairyApp.showToast('Please login to save wishlist.', 'error');
+    }
+}
+
+function addToCartClick(product) {
+    DairyApp.addToCart(product, 1, false);
+}
+
+function openSubModal(product) {
+    selectedProductForSub = product;
+    document.getElementById('modalProdTitle').textContent = `Subscribe to ${product.name}`;
+    document.getElementById('modalProdDesc').textContent = `₹${product.price.toFixed(2)} per ${product.unit}`;
+    document.getElementById('modalProdId').value = product.id;
+    document.getElementById('subModal').classList.add('active');
+}
+
+function closeSubModal() {
+    document.getElementById('subModal').classList.remove('active');
+}
+
+function submitSubscription(e) {
+    e.preventDefault();
+    if (!selectedProductForSub) return;
+
+    const qty = parseInt(document.getElementById('modalQty').value, 10);
+    const freq = document.getElementById('modalFreq').value;
+    const startDate = document.getElementById('modalStartDate').value;
+
+    const subProduct = {
+        ...selectedProductForSub,
+        name: `${selectedProductForSub.name} (${freq} Subscription from ${startDate})`,
+        isSubscription: true
+    };
+
+    DairyApp.addToCart(subProduct, qty, true);
+    closeSubModal();
+}
+</script>
+{% endblock %}
