@@ -69,80 +69,26 @@
                 
                 <!-- Hidden Select for JS Compatibility -->
                 <select id="paymentMethod" class="form-select" style="display: none;" onchange="handlePaymentMethodChange()">
-                    <option value="Direct UPI" selected>Direct Bank Transfer & UPI</option>
-                    <option value="Razorpay">Razorpay Gateway</option>
-                    <option value="Stripe">Stripe Gateway</option>
+                    <option value="Razorpay" selected>Razorpay Gateway</option>
                     <option value="Cash on Delivery">Cash / UPI on Delivery</option>
                 </select>
 
-                <div class="payment-options-grid">
-                    <!-- Option 1: Direct UPI / PhonePe -->
-                    <div class="payment-card-option active-payment-card" data-method="Direct UPI" onclick="selectPaymentCard('Direct UPI')">
-                        <span class="payment-card-badge">0% Fee • Recommended</span>
-                        <div class="payment-card-icon">📱</div>
-                        <div class="payment-card-title">PhonePe & Direct UPI</div>
-                        <div class="payment-card-sub">GPay, PhonePe, Paytm, BHIM & Bank QR Transfer</div>
-                    </div>
-
-                    <!-- Option 2: Razorpay -->
-                    <div class="payment-card-option" data-method="Razorpay" onclick="selectPaymentCard('Razorpay')">
-                        <span class="payment-card-badge">Cards & Banking</span>
+                <div class="payment-options-grid" style="grid-template-columns: 1fr 1fr;">
+                    <!-- Option 1: Razorpay (Default & Recommended) -->
+                    <div class="payment-card-option active-payment-card" data-method="Razorpay" onclick="selectPaymentCard('Razorpay')">
+                        <span class="payment-card-badge">Instant • Recommended</span>
                         <div class="payment-card-icon">🇮🇳</div>
                         <div class="payment-card-title">Razorpay Gateway</div>
-                        <div class="payment-card-sub">Indian Credit/Debit Cards, NetBanking & Wallets</div>
+                        <div class="payment-card-sub">UPI (GPay/PhonePe), Credit/Debit Cards, NetBanking & Wallets</div>
                     </div>
 
-                    <!-- Option 3: Stripe -->
-                    <div class="payment-card-option" data-method="Stripe" onclick="selectPaymentCard('Stripe')">
-                        <span class="payment-card-badge">Global Cards</span>
-                        <div class="payment-card-icon">💳</div>
-                        <div class="payment-card-title">Stripe Checkout</div>
-                        <div class="payment-card-sub">Visa, Mastercard, AMEX & Apple Pay</div>
-                    </div>
-
-                    <!-- Option 4: COD -->
+                    <!-- Option 2: Cash on Delivery -->
                     <div class="payment-card-option" data-method="Cash on Delivery" onclick="selectPaymentCard('Cash on Delivery')">
                         <span class="payment-card-badge">Pay at Door</span>
                         <div class="payment-card-icon">💵</div>
                         <div class="payment-card-title">Cash on Delivery</div>
                         <div class="payment-card-sub">Pay cash or scan QR when fresh milk is delivered</div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Direct Merchant UPI & Bank Account Display Box -->
-            <div id="directUpiBox" style="display: block; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid var(--primary); padding: 1.25rem; border-radius: var(--radius-md); text-align: center; margin-bottom: 1.25rem;">
-                <h4 style="color: var(--primary-hover); margin-bottom: 0.3rem; font-size: 1.15rem;">📱 PhonePe & Direct Bank UPI Transfer</h4>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Direct payment details for GPay, PhonePe, Paytm, BHIM, or NetBanking:</p>
-
-                <div style="background: white; border: 1px solid #bae6fd; border-radius: var(--radius-sm); padding: 0.85rem; text-align: left; margin-bottom: 1rem; font-size: 0.88rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
-                        <span style="color: var(--text-secondary);">Account Holder:</span>
-                        <strong style="color: var(--text-primary);">Byreddy Thara Keshava Reddy</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
-                        <span style="color: var(--text-secondary);">UPI VPA ID:</span>
-                        <strong style="color: var(--primary-hover);" id="upiIdDisplay">41837498566@sbi</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
-                        <span style="color: var(--text-secondary);">Bank Name:</span>
-                        <strong>State Bank of India</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
-                        <span style="color: var(--text-secondary);">Account Number:</span>
-                        <strong style="color: var(--text-primary); font-family: monospace; font-size: 0.95rem;">41837498566</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="color: var(--text-secondary);">IFSC Code:</span>
-                        <strong style="color: var(--text-primary); font-family: monospace; font-size: 0.95rem;">SBIN0000784</strong>
-                    </div>
-                </div>
-
-                <a id="btnUpiDeepLink" href="upi://pay?pa=41837498566@sbi&pn=Byreddy%20Thara%20Keshava%20Reddy&cu=INR" class="btn btn-sm btn-primary" style="font-size: 0.85rem; margin-bottom: 1rem; background: #5f259f; border-color: #5f259f;">Open PhonePe / GPay App 📲</a>
-
-                <div class="form-group" style="text-align: left; margin-bottom: 0;">
-                    <label class="form-label" style="font-size: 0.82rem; margin-bottom: 0.2rem;">Payment Reference / UTR Number (Optional)</label>
-                    <input type="text" id="userUtrInput" class="form-input" placeholder="e.g. 123456789012 (From GPay / PhonePe / Bank App)" style="font-size: 0.85rem;">
                 </div>
             </div>
 
