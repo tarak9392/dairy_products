@@ -54,6 +54,22 @@ def init_db():
     ''')
     u_conn.commit()
 
+    # Seed Demo Test Accounts for Razorpay Review & Testing
+    u_cursor.execute("SELECT id FROM users WHERE email = 'customer@dairy.com'")
+    if not u_cursor.fetchone():
+        u_cursor.execute('''
+            INSERT INTO users (name, email, password_hash, role, phone, address)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', ('Dairy Test Customer', 'customer@dairy.com', hash_password('Password123'), 'customer', '9876543210', 'Flat 402, Royal Palms, RGMCET Road, Nandyal'))
+
+    u_cursor.execute("SELECT id FROM users WHERE email = 'admin@dairy.com'")
+    if not u_cursor.fetchone():
+        u_cursor.execute('''
+            INSERT INTO users (name, email, password_hash, role, phone, address)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', ('Dairy Admin Vendor', 'admin@dairy.com', hash_password('Admin123'), 'admin', '9999999999', 'Main Dairy Plant, Nandyal'))
+    u_conn.commit()
+
     # Initialize Main Dairy Store Database (dairy.db)
     conn = get_db()
     cursor = conn.cursor()
