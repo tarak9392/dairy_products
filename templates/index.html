@@ -4,24 +4,73 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero">
+<section class="hero-cinematic">
+    <!-- Ambient Backdrop Effects -->
+    <div class="hero-aurora-glow"></div>
+    <div class="hero-mesh-grid"></div>
+    
     <div class="hero-content">
-        <h1 class="hero-title">Farm Fresh Dairy Delivered <span>To Your Doorstep</span> Daily</h1>
-        <p class="hero-desc">Experience pure, unadulterated milk, organic curd, fresh paneer, and artisanal ghee. Order one-time or setup hassle-free daily morning subscriptions!</p>
+        <!-- Floating Pill Badge -->
+        <div class="hero-pill-badge">
+            <span class="pulse-dot"></span>
+            <span>✨ 100% Organic Farm Fresh • Delivered by 7 AM Daily</span>
+        </div>
+
+        <h1 class="hero-title">
+            Farm Fresh Dairy
+            <span class="gradient-highlight">Delivered To Your Doorstep</span> Daily
+        </h1>
+        
+        <p class="hero-desc">
+            Experience pure, unadulterated milk, organic curd, artisanal ghee & fresh paneer. 
+            Enjoy hassle-free daily morning subscriptions or 1-click single orders straight from local farms!
+        </p>
+
         <div class="hero-btns">
-            <a href="{{ url_for('products_page') }}" class="btn-with-icon">
-                <span class="btn-text">Explore Products</span>
-                <div class="btn-icon-wrapper">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-                </div>
+            <a href="{{ url_for('products_page') }}" class="btn-hero-primary">
+                <span>Explore Fresh Products</span>
+                <span class="btn-arrow">↗</span>
             </a>
-            <a href="{{ url_for('products_page', category='Milk') }}" class="btn btn-secondary" style="font-size: 1.05rem; padding: 0.8rem 1.6rem; background: rgba(255,255,255,0.2); color: white;">Start Milk Subscription 🥛</a>
+            <a href="{{ url_for('products_page', category='Milk') }}" class="btn-hero-glass">
+                <span>🥛 Start Daily Subscription</span>
+            </a>
+        </div>
+
+        <!-- Quick Trust Metrics Row -->
+        <div class="hero-trust-bar">
+            <div class="trust-item">
+                <span class="trust-icon">⚡</span>
+                <div class="trust-text"><strong>100% Pure</strong><span>Zero Water</span></div>
+            </div>
+            <div class="trust-divider"></div>
+            <div class="trust-item">
+                <span class="trust-icon">🚚</span>
+                <div class="trust-text"><strong>By 7:00 AM</strong><span>Free Morning Delivery</span></div>
+            </div>
+            <div class="trust-divider"></div>
+            <div class="trust-item">
+                <span class="trust-icon">⭐</span>
+                <div class="trust-text"><strong>4.9/5 Stars</strong><span>5,000+ Happy Families</span></div>
+            </div>
         </div>
     </div>
-    <div class="hero-card">
-        <div class="hero-card-icon">🥛</div>
-        <h3>100% Pure & Fresh</h3>
-        <p>Morning deliveries scheduled straight from farm pasteurization to your doorstep before 7 AM.</p>
+
+    <!-- Right Showcase Column: 3D Floating Milk Bottle Showcase Card -->
+    <div class="hero-visual-card">
+        <div class="hero-visual-inner">
+            <img src="{{ url_for('static', filename='images/hero_milk.jpg') }}" alt="Farm Fresh Milk Splash" class="hero-showcase-img">
+            
+            <!-- Live Floating Order Ticker Badge -->
+            <div class="floating-ticker-badge">
+                <span class="live-dot"></span>
+                <span><strong>1,480+</strong> Fresh Milk Bottles Delivered Today!</span>
+            </div>
+
+            <!-- Express Delivery Badge -->
+            <div class="floating-express-badge">
+                <span>⏰ Arrival Guaranteed by 6:45 AM</span>
+            </div>
+        </div>
     </div>
 </section>
 
