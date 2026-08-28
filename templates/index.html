@@ -55,11 +55,18 @@
         </div>
     </div>
 
-    <!-- Right Showcase Column: 3D Floating Milk Bottle Showcase Card -->
+    <!-- Right Showcase Column: 3D Floating Milk Video Showcase Card -->
     <div class="hero-visual-card">
         <div class="hero-visual-inner">
-            <img src="{{ url_for('static', filename='images/hero_milk.jpg') }}" alt="Farm Fresh Milk Splash" class="hero-showcase-img">
+            <video autoplay loop muted playsinline class="hero-showcase-video" poster="{{ url_for('static', filename='images/hero_milk.jpg') }}">
+                <source src="{{ url_for('static', filename='videos/hero_milk_pour.mp4') }}" type="video/mp4">
+            </video>
             
+            <!-- Video Live Badge -->
+            <div class="hero-video-live-tag">
+                <span class="pulse-red-dot"></span> LIVE 4K FARM FRESH
+            </div>
+
             <!-- Live Floating Order Ticker Badge -->
             <div class="floating-ticker-badge">
                 <span class="live-dot"></span>
