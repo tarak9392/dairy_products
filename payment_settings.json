@@ -1,8 +1,8 @@
 {
     "merchant_name": "Fresh Dairy Products",
     "merchant_upi_id": "41837498566@sbi",
-    "razorpay_key_id": "rzp_test_dairy2025demo",
-    "razorpay_key_secret": "test_secret_key_dairy_12345",
+    "razorpay_key_id": "rzp_test_TVEPMOijMy6vJV",
+    "razorpay_key_secret": "S7GIkGit1AxFta2pWeiGH71W",
     "stripe_publishable_key": "pk_test_51DairyDemoPublishableKey123",
     "stripe_secret_key": "sk_test_51DairyDemoSecretKey123",
     "bank_name": "State Bank of India",
