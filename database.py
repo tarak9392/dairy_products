@@ -62,12 +62,12 @@ def init_db():
             VALUES (?, ?, ?, ?, ?, ?)
         ''', ('Dairy Test Customer', 'customer@dairy.com', hash_password('Password123'), 'customer', '9876543210', 'Flat 402, Royal Palms, RGMCET Road, Nandyal'))
 
-    u_cursor.execute("SELECT id FROM users WHERE email = 'admin@dairy.com'")
+    u_cursor.execute("SELECT id FROM users WHERE email = 'tharakeshava46@gmail.com'")
     if not u_cursor.fetchone():
         u_cursor.execute('''
             INSERT INTO users (name, email, password_hash, role, phone, address)
             VALUES (?, ?, ?, ?, ?, ?)
-        ''', ('Dairy Admin Vendor', 'admin@dairy.com', hash_password('Admin123'), 'admin', '9999999999', 'Main Dairy Plant, Nandyal'))
+        ''', ('Tharakeshava', 'tharakeshava46@gmail.com', hash_password('tarak@9392'), 'admin', '9999999999', 'Main Dairy Plant, Nandyal'))
     u_conn.commit()
 
     # Initialize Main Dairy Store Database (dairy.db)
@@ -204,29 +204,15 @@ def init_db():
 
 def seed_demo_data(cursor, conn, u_cursor, u_conn):
     # Seed Admin / Owner User in registered_users.db
-    u_cursor.execute("SELECT COUNT(*) FROM users WHERE email = 'owner@dairy.com'")
+    u_cursor.execute("SELECT COUNT(*) FROM users WHERE email = 'tharakeshava46@gmail.com'")
     if u_cursor.fetchone()[0] == 0:
         u_cursor.execute('''
             INSERT INTO users (name, email, password_hash, role, phone, address)
             VALUES (?, ?, ?, ?, ?, ?)
         ''', (
-            'Store Owner',
-            'owner@dairy.com',
-            hash_password('admin123'),
-            'admin',
-            '+91 98765 43210',
-            'Main Dairy HQ, Tech Park Road, Nandyal'
-        ))
-
-    u_cursor.execute("SELECT COUNT(*) FROM users WHERE email = 'admin@dairy.com'")
-    if u_cursor.fetchone()[0] == 0:
-        u_cursor.execute('''
-            INSERT INTO users (name, email, password_hash, role, phone, address)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (
-            'Dairy Admin',
-            'admin@dairy.com',
-            hash_password('admin123'),
+            'Tharakeshava',
+            'tharakeshava46@gmail.com',
+            hash_password('tarak@9392'),
             'admin',
             '+91 98765 43210',
             'Main Dairy HQ, Tech Park Road, Nandyal'
