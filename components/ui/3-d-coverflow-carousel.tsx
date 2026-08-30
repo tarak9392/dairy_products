@@ -1,168 +1,8 @@
-{% extends "base.html" %}
+"use client";
 
-{% block title %}Fresh Dairy - Web-Based Dairy Products Ordering System{% endblock %}
+import React, { useState, useEffect, useCallback, useRef } from "react";
 
-{% block content %}
-<!-- Hero Section -->
-<section class="hero-cinematic">
-    <!-- Ambient Backdrop Effects -->
-    <div class="hero-aurora-glow"></div>
-    <div class="hero-mesh-grid"></div>
-    
-    <div class="hero-content">
-        <!-- Floating Pill Badge -->
-        <div class="hero-pill-badge">
-            <span class="pulse-dot"></span>
-            <span>✨ 100% Organic Farm Fresh • Delivered by 7 AM Daily</span>
-        </div>
-
-        <h1 class="hero-title">
-            Farm Fresh Dairy
-            <span class="gradient-highlight">Delivered To Your Doorstep</span> Daily
-        </h1>
-        
-        <p class="hero-desc">
-            Experience pure, unadulterated milk, organic curd, artisanal ghee & fresh paneer. 
-            Enjoy hassle-free daily morning subscriptions or 1-click single orders straight from local farms!
-        </p>
-
-        <div class="hero-btns">
-            <a href="{{ url_for('products_page') }}" class="btn-hero-primary">
-                <span>Explore Fresh Products</span>
-                <span class="btn-arrow">↗</span>
-            </a>
-            <a href="{{ url_for('products_page', category='Milk') }}" class="btn-hero-glass">
-                <span>🥛 Start Daily Subscription</span>
-            </a>
-        </div>
-
-        <!-- Quick Trust Metrics Row -->
-        <div class="hero-trust-bar">
-            <div class="trust-item">
-                <span class="trust-icon">⚡</span>
-                <div class="trust-text"><strong>100% Pure</strong><span>Zero Water</span></div>
-            </div>
-            <div class="trust-divider"></div>
-            <div class="trust-item">
-                <span class="trust-icon">🚚</span>
-                <div class="trust-text"><strong>By 7:00 AM</strong><span>Free Morning Delivery</span></div>
-            </div>
-            <div class="trust-divider"></div>
-            <div class="trust-item">
-                <span class="trust-icon">⭐</span>
-                <div class="trust-text"><strong>4.9/5 Stars</strong><span>5,000+ Happy Families</span></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Right Showcase Column: 3D Floating Milk Video Showcase Card -->
-    <div class="hero-visual-card">
-        <div class="hero-visual-inner">
-            <video autoplay loop muted playsinline class="hero-showcase-video" poster="{{ url_for('static', filename='images/hero_milk.jpg') }}">
-                <source src="{{ url_for('static', filename='videos/hero_milk_pour.mp4') }}" type="video/mp4">
-            </video>
-            
-            <!-- Video Live Badge -->
-            <div class="hero-video-live-tag">
-                <span class="pulse-red-dot"></span> LIVE 4K FARM FRESH
-            </div>
-
-            <!-- Live Floating Order Ticker Badge -->
-            <div class="floating-ticker-badge">
-                <span class="live-dot"></span>
-                <span><strong>1,480+</strong> Fresh Milk Bottles Delivered Today!</span>
-            </div>
-
-            <!-- Express Delivery Badge -->
-            <div class="floating-express-badge">
-                <span>⏰ Arrival Guaranteed by 6:45 AM</span>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- 3D Coverflow Carousel Component (from components/ui/3-d-coverflow-carousel.tsx) -->
-<div id="coverflow-carousel-root"></div>
-
-<!-- Features Grid -->
-<div class="features-grid">
-    <div class="feature-card">
-        <div class="feature-icon">🚀</div>
-        <h3>Real-Time Processing</h3>
-        <p>Instant order confirmation and live delivery tracking for customers and admin vendors.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">📅</div>
-        <h3>Daily Subscriptions</h3>
-        <p>Flexible daily, alternate day, or weekly schedules with easy pause and resume options.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">🛡️</div>
-        <h3>Quality Guaranteed</h3>
-        <p>Strict quality tests, hygienic cold chain storage, and freshness tracking on all items.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <h3>Centralized Management</h3>
-        <p>Empowers vendors with automated stock alerts, order dispatch, and financial reporting.</p>
-    </div>
-</div>
-
-<!-- Featured Products Section -->
-<div class="section-header">
-    <div>
-        <h2 class="section-title">Popular Dairy Essentials</h2>
-        <p class="section-subtitle">Handpicked fresh recommendations for your family</p>
-    </div>
-    <a href="{{ url_for('products_page') }}" class="btn btn-outline">View All Products &rarr;</a>
-</div>
-
-<div class="products-grid">
-    {% for product in featured_products %}
-    <div class="product-card">
-        <div class="product-image-wrap">
-            {% if product['image_url'] %}
-                <img src="{{ product['image_url'] }}" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <span style="display:none;">{{ product['image_symbol'] or '🥛' }}</span>
-            {% else %}
-                <span>{{ product['image_symbol'] or '🥛' }}</span>
-            {% endif %}
-            <span class="product-category-tag">{{ product['category'] }}</span>
-            {% if product['stock'] > 20 %}
-                <span class="product-stock-badge stock-in">In Stock</span>
-            {% elif product['stock'] > 0 %}
-                <span class="product-stock-badge stock-low">Only {{ product['stock'] }} left</span>
-            {% else %}
-                <span class="product-stock-badge stock-out">Out of Stock</span>
-            {% endif %}
-        </div>
-        <div class="product-body">
-            <h3 class="product-title">{{ product['name'] }}</h3>
-            <div class="product-unit">{{ product['unit'] }}</div>
-            <p class="product-desc">{{ product['description'] }}</p>
-            <div class="product-footer">
-                <div class="product-price">₹{{ '%.2f'|format(product['price']) }}</div>
-                <div class="product-actions">
-                    <button class="btn btn-sm btn-primary" onclick="addToCartFromHome({{ product['id'] }}, '{{ product['name'] }}', {{ product['price'] }}, '{{ product['unit'] }}', '{{ product['image_symbol'] }}')">+ Add</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endfor %}
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-function addToCartFromHome(id, name, price, unit, symbol) {
-    DairyApp.addToCart({ id, name, price, unit, image_symbol: symbol }, 1, false);
-}
-</script>
-
-<!-- Babel script rendering the CoverFlowCarousel component from components/ui/3-d-coverflow-carousel.tsx -->
-<script type="text/babel">
-const { useState, useEffect, useCallback, useRef } = React;
-
+// Inline Icons (Zero external dependencies)
 const ChevronLeftIcon = () => (
   <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -181,7 +21,26 @@ const ArrowRightIcon = () => (
   </svg>
 );
 
-const defaultDishes = [
+export interface CarouselItem {
+  tag?: string;
+  titleLine1: string;
+  titleLine2?: string;
+  desc?: string;
+  img: string;
+  ctaText?: string;
+  ctaUrl?: string;
+}
+
+export interface CoverFlowCarouselProps {
+  items?: CarouselItem[];
+  sectionLabel?: string;
+  autoplay?: boolean;
+  autoplayDelay?: number;
+  className?: string;
+  onCtaClick?: (item: CarouselItem) => void;
+}
+
+export const defaultDishes: CarouselItem[] = [
   {
     tag: "#Signature",
     titleLine1: "BUTTER CHICKEN",
@@ -189,7 +48,7 @@ const defaultDishes = [
     desc: "Velvety roasted tomato and fenugreek gravy with tender charred chicken",
     img: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=800&auto=format&fit=crop&q=80",
     ctaText: "View Menu",
-    ctaUrl: "/products",
+    ctaUrl: "#",
   },
   {
     tag: "#ChefSpecial",
@@ -198,7 +57,7 @@ const defaultDishes = [
     desc: "Grass-fed lamb chops charred in live charcoal tandoor with Kashmiri spices",
     img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=800&auto=format&fit=crop&q=80",
     ctaText: "View Menu",
-    ctaUrl: "/products",
+    ctaUrl: "#",
   },
   {
     tag: "#Vegetarian",
@@ -207,7 +66,7 @@ const defaultDishes = [
     desc: "Artisan cottage cheese marinated in spiced yogurt, bell peppers & saffron",
     img: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=800&auto=format&fit=crop&q=80",
     ctaText: "View Menu",
-    ctaUrl: "/products",
+    ctaUrl: "#",
   },
   {
     tag: "#CoastalCatch",
@@ -216,7 +75,7 @@ const defaultDishes = [
     desc: "Jumbo wild tiger prawns simmered in fragrant curry leaves and coconut milk",
     img: "https://images.unsplash.com/photo-1559847844-5315695dadae?w=800&auto=format&fit=crop&q=80",
     ctaText: "View Menu",
-    ctaUrl: "/products",
+    ctaUrl: "#",
   },
   {
     tag: "#ArtisanBake",
@@ -225,18 +84,18 @@ const defaultDishes = [
     desc: "Crispy puffed leavened bread brushed with pure ghee and black winter truffle",
     img: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=800&auto=format&fit=crop&q=80",
     ctaText: "View Menu",
-    ctaUrl: "/products",
+    ctaUrl: "#",
   },
 ];
 
-function CoverFlowCarousel({
+export function CoverFlowCarousel({
   items = defaultDishes,
-  sectionLabel = "BEST SELLERS & SIGNATURE SPECIALS",
+  sectionLabel = "BEST SELLERS",
   autoplay = true,
   autoplayDelay = 5000,
   className = "",
   onCtaClick,
-}) {
+}: CoverFlowCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const touchStartX = useRef(0);
@@ -250,7 +109,7 @@ function CoverFlowCarousel({
     setCurrentIndex((prev) => (prev - 1 + total) % total);
   }, [total]);
 
-  const goToSlide = (idx) => {
+  const goToSlide = (idx: number) => {
     setCurrentIndex(idx % total);
   };
 
@@ -261,7 +120,7 @@ function CoverFlowCarousel({
   }, [autoplay, autoplayDelay, isHovered, nextSlide, total]);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") prevSlide();
       if (e.key === "ArrowRight") nextSlide();
     };
@@ -269,11 +128,11 @@ function CoverFlowCarousel({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [nextSlide, prevSlide]);
 
-  const handleTouchStart = (e) => {
+  const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
 
-  const handleTouchEnd = (e) => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
     const diff = e.changedTouches[0].clientX - touchStartX.current;
     if (Math.abs(diff) > 45) {
       if (diff < 0) nextSlide();
@@ -296,6 +155,7 @@ function CoverFlowCarousel({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Background Ambience */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <img
           src={items[currentIndex]?.img}
@@ -318,6 +178,7 @@ function CoverFlowCarousel({
       </div>
 
       <div className="relative w-full max-w-6xl mx-auto px-4 z-10 flex flex-col items-center">
+        {/* Eyebrow */}
         {sectionLabel && (
           <div className="flex items-center gap-3 mb-8">
             <span style={{ width: "36px", height: "1px", background: "linear-gradient(90deg, transparent, #c5a880)" }} />
@@ -337,6 +198,7 @@ function CoverFlowCarousel({
           </div>
         )}
 
+        {/* 3D Coverflow Stage */}
         <div
           className="relative w-full h-[520px] flex justify-center items-center mb-8"
           style={{ perspective: "1400px" }}
@@ -402,6 +264,7 @@ function CoverFlowCarousel({
                   cursor: isCenter ? "default" : "pointer",
                 }}
               >
+                {/* Photo */}
                 <img
                   src={item.img}
                   alt={item.titleLine1}
@@ -414,6 +277,7 @@ function CoverFlowCarousel({
                   }}
                 />
 
+                {/* Dark Vignette Overlay */}
                 <div
                   style={{
                     position: "absolute",
@@ -425,6 +289,7 @@ function CoverFlowCarousel({
                   }}
                 />
 
+                {/* Content Overlay */}
                 <div
                   style={{
                     position: "relative",
@@ -442,6 +307,7 @@ function CoverFlowCarousel({
                     pointerEvents: isCenter ? "auto" : "none",
                   }}
                 >
+                  {/* Tag */}
                   <div style={{ textAlign: "right", width: "100%", paddingRight: "4px" }}>
                     <span
                       style={{
@@ -457,6 +323,7 @@ function CoverFlowCarousel({
                     </span>
                   </div>
 
+                  {/* Body Content */}
                   <div
                     style={{
                       display: "flex",
@@ -561,6 +428,7 @@ function CoverFlowCarousel({
           })}
         </div>
 
+        {/* Navigation Arrows */}
         <button
           onClick={prevSlide}
           aria-label="Previous dish"
@@ -615,6 +483,7 @@ function CoverFlowCarousel({
           <ChevronRightIcon />
         </button>
 
+        {/* Pagination Dots */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", zIndex: 30 }}>
           {items.map((_, idx) => (
             <button
@@ -639,12 +508,5 @@ function CoverFlowCarousel({
   );
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('coverflow-carousel-root');
-  if (container) {
-    const root = ReactDOM.createRoot(container);
-    root.render(<CoverFlowCarousel />);
-  }
-});
-</script>
-{% endblock %}
+export const Component = CoverFlowCarousel;
+export default CoverFlowCarousel;
