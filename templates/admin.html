@@ -49,6 +49,7 @@
     <button class="tab-btn" onclick="switchAdminTab('productsTab', this)">🥛 Products & Inventory</button>
     <button class="tab-btn" onclick="switchAdminTab('paymentsTab', this)">💳 Merchant Payment Credentials</button>
     <button class="tab-btn" onclick="switchAdminTab('analyticsTab', this)">📊 Stock & Category Analytics</button>
+    <button class="tab-btn" onclick="switchAdminTab('securityTab', this)">🔐 Owner Security & Account</button>
 </div>
 
 <!-- Tab 1: Orders & Fulfillment -->
@@ -224,6 +225,78 @@
     </div>
 </div>
 
+<!-- Tab 5: Owner Account & Security -->
+<div id="securityTab" class="tab-content" style="display: none;">
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+            <div>
+                <h2 style="font-size: 1.35rem; margin-bottom: 0.25rem;">Store Owner Profile & Security</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Manage your store owner login email, account contact information, and security password.</p>
+            </div>
+            <span id="ownerSecurityRoleBadge" style="background: #e0f2fe; color: #0284c7; padding: 0.4rem 0.85rem; border-radius: 20px; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;">
+                🛡️ Authenticated Store Owner (Admin)
+            </span>
+        </div>
+
+        <form id="ownerSecurityForm" onsubmit="saveOwnerSecurityProfile(event)">
+            <div style="background: rgba(248, 250, 252, 0.8); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    👤 Owner Account Information
+                </h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 700;">Owner Full Name</label>
+                        <input type="text" id="ownerNameInput" class="form-input" required placeholder="e.g. Store Owner">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 700;">Owner Login Email Address</label>
+                        <input type="email" id="ownerEmailInput" class="form-input" required placeholder="e.g. owner@dairy.com">
+                        <small style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem; display: block;">This email will be used for Store Owner Portal login.</small>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
+                    <div class="form-group">
+                        <label class="form-label">Contact Phone Number</label>
+                        <input type="text" id="ownerPhoneInput" class="form-input" placeholder="+91 98765 43210">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">HQ / Store Address</label>
+                        <input type="text" id="ownerAddressInput" class="form-input" placeholder="Main Dairy HQ, Tech Park Road">
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: rgba(254, 242, 242, 0.6); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.1rem; color: #b91c1c; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    🔑 Update Owner Password
+                </h3>
+                <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1rem;">Leave these password fields blank if you do not wish to change your current login password.</p>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="font-weight: 700;">Current Security Password</label>
+                    <input type="password" id="ownerCurrentPasswordInput" class="form-input" placeholder="Required only if changing password">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 700;">New Security Password</label>
+                        <input type="password" id="ownerNewPasswordInput" class="form-input" placeholder="At least 6 characters">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 700;">Confirm New Security Password</label>
+                        <input type="password" id="ownerConfirmPasswordInput" class="form-input" placeholder="Re-type new password">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-accent" style="padding: 0.85rem 1.8rem; font-size: 1rem;">
+                Save Owner Details & Security Settings 💾
+            </button>
+        </form>
+    </div>
+</div>
+
 <!-- Product Add / Edit Modal -->
 <div id="productModal" class="modal-overlay">
     <div class="modal-card">
@@ -297,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAdminOrders();
     fetchAdminProducts();
     fetchPaymentSettings();
+    fetchOwnerProfile();
 });
 
 function switchAdminTab(tabId, btn) {
@@ -304,6 +378,10 @@ function switchAdminTab(tabId, btn) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(tabId).style.display = 'block';
     btn.classList.add('active');
+
+    if (tabId === 'securityTab') {
+        fetchOwnerProfile();
+    }
 }
 
 async function fetchAdminStats() {
@@ -600,6 +678,83 @@ async function savePaymentSettings(e) {
         }
     } catch(e) {
         DairyApp.showToast('Network error saving settings.', 'error');
+    }
+}
+
+async function fetchOwnerProfile() {
+    try {
+        const res = await fetch('/api/admin/profile');
+        const data = await res.json();
+        if (data.success && data.user) {
+            const u = data.user;
+            document.getElementById('ownerNameInput').value = u.name || '';
+            document.getElementById('ownerEmailInput').value = u.email || '';
+            document.getElementById('ownerPhoneInput').value = u.phone || '';
+            document.getElementById('ownerAddressInput').value = u.address || '';
+
+            const badge = document.getElementById('ownerSecurityRoleBadge');
+            if (badge) {
+                badge.textContent = `🛡️ Authenticated Owner (${u.email})`;
+            }
+        }
+    } catch (e) {
+        console.error('Error fetching owner profile:', e);
+    }
+}
+
+async function saveOwnerSecurityProfile(e) {
+    e.preventDefault();
+    const name = document.getElementById('ownerNameInput').value.trim();
+    const email = document.getElementById('ownerEmailInput').value.trim();
+    const phone = document.getElementById('ownerPhoneInput').value.trim();
+    const address = document.getElementById('ownerAddressInput').value.trim();
+
+    const current_password = document.getElementById('ownerCurrentPasswordInput').value;
+    const new_password = document.getElementById('ownerNewPasswordInput').value;
+    const confirm_password = document.getElementById('ownerConfirmPasswordInput').value;
+
+    if (new_password || confirm_password) {
+        if (!current_password) {
+            DairyApp.showToast('Please enter your Current Security Password to change password.', 'error');
+            return;
+        }
+        if (new_password !== confirm_password) {
+            DairyApp.showToast('New Password and Confirm Password do not match.', 'error');
+            return;
+        }
+        if (new_password.length < 6) {
+            DairyApp.showToast('New Password must be at least 6 characters long.', 'error');
+            return;
+        }
+    }
+
+    const payload = {
+        name,
+        email,
+        phone,
+        address,
+        current_password,
+        new_password
+    };
+
+    try {
+        const res = await fetch('/api/admin/profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            DairyApp.showToast(data.message, 'success');
+            document.getElementById('ownerCurrentPasswordInput').value = '';
+            document.getElementById('ownerNewPasswordInput').value = '';
+            document.getElementById('ownerConfirmPasswordInput').value = '';
+            fetchOwnerProfile();
+        } else {
+            DairyApp.showToast(data.message || 'Failed to update owner profile.', 'error');
+        }
+    } catch (err) {
+        DairyApp.showToast('Network error updating owner details.', 'error');
     }
 }
 </script>

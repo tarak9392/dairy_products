@@ -176,9 +176,11 @@ def api_demo_login():
     data = request.get_json() or {}
     role = data.get('role', 'customer')
 
-    target_email = 'admin@dairy.com' if role == 'admin' else 'customer@dairy.com'
     conn = database.get_users_db()
-    user = conn.execute("SELECT * FROM users WHERE email = ?", (target_email,)).fetchone()
+    if role == 'admin':
+        user = conn.execute("SELECT * FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1").fetchone()
+    else:
+        user = conn.execute("SELECT * FROM users WHERE email = 'customer@dairy.com'").fetchone()
     conn.close()
 
     if user:
@@ -656,6 +658,104 @@ def api_admin_payment_settings():
         'settings': settings,
         'is_real_razorpay': payment_config.is_real_razorpay(settings),
         'is_real_stripe': payment_config.is_real_stripe(settings)
+    })
+
+@app.route('/api/admin/profile', methods=['GET', 'PUT'])
+@admin_required
+def api_admin_profile():
+    user_id = session.get('user_id')
+    conn = database.get_users_db()
+
+    if request.method == 'GET':
+        user = conn.execute("SELECT id, name, email, role, phone, address, created_at FROM users WHERE id = ?", (user_id,)).fetchone()
+        if not user:
+            user = conn.execute("SELECT id, name, email, role, phone, address, created_at FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1").fetchone()
+        conn.close()
+
+        if not user:
+            return jsonify({'success': False, 'message': 'Owner profile not found.'}), 404
+
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user['id'],
+                'name': user['name'],
+                'email': user['email'],
+                'role': user['role'],
+                'phone': user['phone'] or '',
+                'address': user['address'] or '',
+                'created_at': user['created_at']
+            }
+        })
+
+    # PUT request - Update profile & credentials
+    data = request.get_json() or {}
+    name = data.get('name', '').strip()
+    email = data.get('email', '').strip().lower()
+    phone = data.get('phone', '').strip()
+    address = data.get('address', '').strip()
+    current_password = data.get('current_password', '')
+    new_password = data.get('new_password', '')
+
+    if not name or not email:
+        conn.close()
+        return jsonify({'success': False, 'message': 'Name and Email address are required.'}), 400
+
+    user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    if not user:
+        user = conn.execute("SELECT * FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1").fetchone()
+
+    if not user:
+        conn.close()
+        return jsonify({'success': False, 'message': 'Store Owner user record not found.'}), 404
+
+    target_user_id = user['id']
+
+    if email != user['email']:
+        existing = conn.execute("SELECT id FROM users WHERE email = ? AND id != ?", (email, target_user_id)).fetchone()
+        if existing:
+            conn.close()
+            return jsonify({'success': False, 'message': 'An account with this email address already exists.'}), 400
+
+    new_pwd_hash = user['password_hash']
+    if new_password:
+        if not current_password:
+            conn.close()
+            return jsonify({'success': False, 'message': 'Current security password is required to set a new password.'}), 400
+
+        cur_hash = database.hash_password(current_password)
+        if cur_hash != user['password_hash']:
+            conn.close()
+            return jsonify({'success': False, 'message': 'Incorrect current security password.'}), 400
+
+        if len(new_password) < 6:
+            conn.close()
+            return jsonify({'success': False, 'message': 'New password must be at least 6 characters long.'}), 400
+
+        new_pwd_hash = database.hash_password(new_password)
+
+    conn.execute('''
+        UPDATE users
+        SET name = ?, email = ?, password_hash = ?, phone = ?, address = ?
+        WHERE id = ?
+    ''', (name, email, new_pwd_hash, phone, address, target_user_id))
+    conn.commit()
+    conn.close()
+
+    session['user_name'] = name
+    session['user_email'] = email
+
+    return jsonify({
+        'success': True,
+        'message': 'Owner login details and profile updated successfully!',
+        'user': {
+            'id': target_user_id,
+            'name': name,
+            'email': email,
+            'role': user['role'],
+            'phone': phone,
+            'address': address
+        }
     })
 
 @app.route('/api/payment/create-order', methods=['POST'])
