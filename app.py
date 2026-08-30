@@ -176,11 +176,11 @@ def api_demo_login():
     data = request.get_json() or {}
     role = data.get('role', 'customer')
 
-    conn = database.get_users_db()
     if role == 'admin':
-        user = conn.execute("SELECT * FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1").fetchone()
-    else:
-        user = conn.execute("SELECT * FROM users WHERE email = 'customer@dairy.com'").fetchone()
+        return jsonify({'success': False, 'message': 'Owner demo login is disabled for security. Please sign in with your owner credentials.'}), 403
+
+    conn = database.get_users_db()
+    user = conn.execute("SELECT * FROM users WHERE email = 'customer@dairy.com'").fetchone()
     conn.close()
 
     if user:
